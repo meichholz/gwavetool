@@ -2,7 +2,8 @@
 
 test Makefile && make distclean
 
-rm aux/*
+test -d aux && rm -rf aux
+mkdir aux
 
 for PAT in aclocal.m4 "*~" stamp-h.in Makefile Makefile.in configure "t.*" "tmp.*" "*.bak" ; do
   find -name "$PAT" -exec rm "{}" \;
