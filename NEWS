@@ -1,6 +1,7 @@
 New on 2004-04-10
 	* Begin rewrite in C: "Write in C, write in C ..."
 	* Cleanup of all unnecessary stuff
+	* MOVED .cc TO THE ATTIC, INSTALLED .c INSTEAD (version 0.0.8)
 
 New on 2003-11-26
 	* autoconf compliant (erm.. not really portable maybe)

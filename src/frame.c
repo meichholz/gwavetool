@@ -245,7 +245,7 @@ gboolean frame_on_menu(struct TFrame *me, guint id)
       frame_activate_LRU(me,id-ID_LASTFILE1);
       break;
     case ID_ABOUT:
-      { TAboutDialog dlg;
+      { struct TAboutDialog dlg;
         aboutdialog_init(&dlg,me->pApp);
         aboutdialog_do_modal(&dlg);
 	aboutdialog_destroy(&dlg);

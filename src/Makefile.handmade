@@ -7,7 +7,7 @@
 # See COPYING
 #
 
-VERSION = 0.0.7
+VERSION = 0.0.8
 
 GTK_LIBS   = `pkg-config --libs gtk+-2.0` 
 GTK_CFLAGS = `pkg-config --cflags gtk+-2.0` 
@@ -27,22 +27,22 @@ CFLAGS     = -Wall -O2 $(DEBUGIT) -DVERSION=\"$(VERSION)\"
 LDFLAGS    = $(DEBUGIT)
 
 CC  = gcc
-CPP = g++
+CPP = gcc
 
 NAME = gwavetool
 
-MODULES = waveview.o frame.o dlgabout.o main.o base.o app.o wave.o statusbar.o
+MODULES = waveview.o frame.o dlgabout.o main.o app.o wave.o statusbar.o
 
 HEADERS = gwavetool.h dlgabout.h main.h base.h app.h frame.h wave.h waveview.h statusbar.h
 
-CCFILES = dlgabout.cc main.cc base.cc app.cc frame.cc wave.cc waveview.cc
+CCFILES = dlgabout.c main.c app.c frame.c wave.c waveview.c
 
 BINARIES = $(NAME)
 
-CC_LIBS = -lstdc++
+# CC_LIBS = -lstdc++
 
-.cc.o :
-	$(CPP) $(CFLAGS) $(GTK_CFLAGS) $(SF_CFLAGS) $(ESD_CFLAGS) $(THREAD_CFLAGS) -c $*.cc -o $*.o
+.c.o :
+	$(CPP) $(CFLAGS) $(GTK_CFLAGS) $(SF_CFLAGS) $(ESD_CFLAGS) $(THREAD_CFLAGS) -c $*.c -o $*.o
 
 default: test
 

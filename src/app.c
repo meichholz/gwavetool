@@ -12,17 +12,13 @@
 #include "frame.h"
 #include "wave.h"
 
-//
-// Constructor/Destructor
-//
-
 void app_init(struct TApp *me,int argc, char *argv[])
 {
   g_thread_init(NULL);
   gdk_threads_init();
   gtk_init(&argc,&argv);
   me->pWave = wave_new(me);
-  me->pFrame= (struct TFrame *)malloc(sizeof(TFrame)); frame_init(me->pFrame,me);
+  me->pFrame= (struct TFrame *)malloc(sizeof(struct TFrame)); frame_init(me->pFrame,me);
 }
 
 void app_destroy(struct TApp *me)
@@ -39,7 +35,7 @@ void app_destroy(struct TApp *me)
 
 void app_poll_queue(struct TApp *me)
 {
-  while (me->bActive and gtk_events_pending ())
+  while (me->bActive && gtk_events_pending ())
     if (gtk_main_iteration ())
       me->bActive=false;
 }

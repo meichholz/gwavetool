@@ -78,10 +78,10 @@ void   get_time_code(gchar *szBuffer,
 		     double dTime)
 {
   int nHour,nMin,nSec,nMilli;
-  nHour=int(dTime/3600.0);
-  nMin=int((dTime-3600.0*nHour)/60.0);
-  nSec=int((dTime-3600.0*nHour-60.0*nMin));
-  nMilli=int((dTime-floor(dTime))*1000.0);
+  nHour=(int)(dTime/3600.0);
+  nMin=(int)((dTime-3600.0*nHour)/60.0);
+  nSec=(int)((dTime-3600.0*nHour-60.0*nMin));
+  nMilli=(int)((dTime-floor(dTime))*1000.0);
   snprintf(szBuffer,cchBufferMax,"%d:%02d:%02d:%03d",
 	   nHour,nMin,nSec,nMilli);
   szBuffer[cchBufferMax-1]='\0';
@@ -125,12 +125,12 @@ long   waveview_time_to_point(struct TWaveView *me, double dTime)
   gdk_drawable_get_size(me->pCanvasLeft->window,&cx,&cy);
   dRight=WAVEVIEW_TIME_RIGHT;
   dLeft=WAVEVIEW_TIME_LEFT;
-  return long((dTime-dLeft)/(dRight-dLeft)*(double)(cx-1.0));
+  return (long)((dTime-dLeft)/(dRight-dLeft)*(double)(cx-1.0));
 }
 
 long   waveview_time_to_sample(struct TWaveView *me, double dTime)
 {
-  return long(dTime*(double)(wave_get_sample_rate(me->pApp->pWave)));
+  return (long)(dTime*(double)(wave_get_sample_rate(me->pApp->pWave)));
 }
 
 /* ======================================================================
@@ -228,8 +228,8 @@ gboolean waveview_on_mouse_move(struct TWaveView *me, GdkEventMotion *pEvent)
 gboolean waveview_on_mouse_button(struct TWaveView *me, GdkEventButton *pEvent)
 {
   long x,y;
-  x=int(pEvent->x);
-  y=int(pEvent->y);
+  x=(int)(pEvent->x);
+  y=(int)(pEvent->y);
   debug_printf(DEBUG_SELECTION,"view: %ld/%ld:%04x/%d",x,y,pEvent->state,pEvent->type);
   return true; /* true=!propagate */
 }
@@ -374,7 +374,7 @@ void*    waveview_recorder_thread(struct TWaveView *me)
     }
   /* TODO: setting channels, samplerate and so on */
   int li;
-  short *psBuffer=new short[wave_get_frame_size(pWave)];
+  short *psBuffer=(short*)malloc(wave_get_frame_size(pWave)*sizeof(short));
   if (!psBuffer)
     {
       me->stateRecorder=idle;
@@ -423,7 +423,7 @@ void*    waveview_recorder_thread(struct TWaveView *me)
       debug_printf(DEBUG_RECORDER,"unsupported recorder state: %d",me->stateRecorder);
     }
   waveview_close_recorder(me);
-  delete [] psBuffer;
+  free(psBuffer);
  
   me->stateRecorder=idle;
   gdk_threads_enter();
@@ -504,7 +504,7 @@ void  waveview_procRangeValue(GObject *pobject, struct TWaveView *me)
 }
 
 void   waveview_init(struct TWaveView *me,
-		     class TFrame *pParent, GtkWidget *pParentBox)
+		     struct TFrame *pParent, GtkWidget *pParentBox)
 {
   me->pFrame=pParent;
   me->pApp=pParent->pApp;
@@ -515,8 +515,8 @@ void   waveview_init(struct TWaveView *me,
   gtk_box_pack_start(GTK_BOX(pParentBox),me->pCanvasLeft,TRUE,TRUE,0);
   gtk_box_pack_start(GTK_BOX(pParentBox),me->pScrollbar,FALSE,FALSE,0);
   gtk_box_pack_start(GTK_BOX(pParentBox),me->pCanvasRight,TRUE,TRUE,0);
-  g_signal_connect(G_OBJECT(me->pCanvasLeft), EVENT_TYPE_EXPOSE, G_CALLBACK(waveview_procPaint),gpointer(me));
-  g_signal_connect(G_OBJECT(me->pCanvasRight), EVENT_TYPE_EXPOSE, G_CALLBACK(waveview_procPaint),gpointer(me));
+  g_signal_connect(G_OBJECT(me->pCanvasLeft), EVENT_TYPE_EXPOSE, G_CALLBACK(waveview_procPaint),(gpointer)(me));
+  g_signal_connect(G_OBJECT(me->pCanvasRight), EVENT_TYPE_EXPOSE, G_CALLBACK(waveview_procPaint),(gpointer)(me));
   gtk_widget_show(me->pCanvasLeft);
   gtk_widget_show(me->pScrollbar);
   gtk_widget_show(me->pCanvasRight);
@@ -529,7 +529,7 @@ void   waveview_init(struct TWaveView *me,
   g_signal_connect(G_OBJECT(me->pCanvasLeft), EVENT_TYPE_MOUSEMOVE, G_CALLBACK(waveview_procMouseMove),me);
   g_signal_connect(G_OBJECT(me->pCanvasRight), EVENT_TYPE_BUTTONDOWN, G_CALLBACK(waveview_procMouseButton),me);
   g_signal_connect(G_OBJECT(me->pCanvasRight), EVENT_TYPE_BUTTONUP, G_CALLBACK(waveview_procMouseButton),me);
-  g_signal_connect(G_OBJECT(me->pCanvasLeft), EVENT_TYPE_BUTTONDOWN, G_CALLBACK(procMouseButton),me);
+  g_signal_connect(G_OBJECT(me->pCanvasLeft), EVENT_TYPE_BUTTONDOWN, G_CALLBACK(waveview_procMouseButton),me);
   g_signal_connect(G_OBJECT(me->pCanvasLeft), EVENT_TYPE_BUTTONUP, G_CALLBACK(waveview_procMouseButton),me);
   gtk_widget_add_events(me->pCanvasRight,GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK);
   gtk_widget_add_events(me->pCanvasLeft,GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK);
@@ -543,11 +543,11 @@ void   waveview_init(struct TWaveView *me,
   gtk_window_set_geometry_hints (frame_window(pParent),
 				 me->pCanvasLeft,
 				 &gg,
-				 GdkWindowHints(GDK_HINT_MIN_SIZE));
+				 (GdkWindowHints)(GDK_HINT_MIN_SIZE));
   gtk_window_set_geometry_hints (frame_window(pParent),
 				 me->pCanvasRight,
 				 &gg,
-				 GdkWindowHints(GDK_HINT_MIN_SIZE));
+				 (GdkWindowHints)(GDK_HINT_MIN_SIZE));
   waveview_zoom_reset(me,false);
   me->stateRecorder=idle;
 }

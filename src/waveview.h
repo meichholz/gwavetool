@@ -31,7 +31,7 @@ struct TWaveView {
 
 void   get_time_code(gchar *szBuffer, int cchBufferMax, double dTime);
 
-void   waveview_init(struct TWaveView *me, class TFrame *pParentIn, GtkWidget *pParentBoxIn);
+void   waveview_init(struct TWaveView *me, struct TFrame *pParentIn, GtkWidget *pParentBoxIn);
 void   waveview_destroy(struct TWaveView *me);
 
 double waveview_point_to_time(struct TWaveView *me, long lx);

@@ -6,7 +6,7 @@
 #define STATUSBAR_NUM_ELEMENTS 3
 
 struct TStatusBar {
-  class TFrame *pFrame;
+  struct     TFrame *pFrame;
   GtkWidget *pBox,*apFrames[STATUSBAR_NUM_ELEMENTS];
   GtkWidget *pStatusBar,*pLabelXY,*pProgress;
 };

@@ -10,16 +10,16 @@
 
 #define WAVE_RATE_CDAUDIO    44100
 
-// ----------------------------------------------------------------------
-// CreateSamples()
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * CreateSamples()
+ * ---------------------------------------------------------------------- */
 
 TResult wave_create_samples(struct TWave *me)
 {
   long i;
   me->nRate        = 50;
   me->lcSamples    = 500;
-  me->pSamples     = new short[me->lcSamples];
+  me->pSamples     = (short*)calloc(me->lcSamples, sizeof(short));
   me->cChannels    = 1;
   if (!me->pSamples) return rcNomem;
 
@@ -27,7 +27,7 @@ TResult wave_create_samples(struct TWave *me)
 
   for (i=0; i<me->lcSamples; i++)
     {
-      me->pSamples[i]=short(32767*sin(2.0*M_PI*i/me->nRate));
+      me->pSamples[i]=(short)(32767*sin(2.0*M_PI*i/me->nRate));
     }
   return rcOk;
 }
@@ -50,7 +50,7 @@ TResult wave_get_frame(struct TWave *me, short *psSamples, long liFrame)
       debug_printf(DEBUG_WAVE,"GetFrame() out of bounds: li=%ld(%ld)",li,me->lcSamples);
       return rcBounds;
     }
-  long lcToMove=WAVE_FRAME_SAMPLES*me->cChannels; // in shorts!!!
+  long lcToMove=WAVE_FRAME_SAMPLES*me->cChannels; /* in shorts!!! */
   memset(psSamples,0,lcToMove); /* trailing bytes are initialised */
   if (li+lcToMove>me->lcSamples*me->cChannels)
     lcToMove=me->lcSamples*me->cChannels-li;
@@ -78,9 +78,9 @@ short   wave_peek_sample(struct TWave *me, int iChannel, long li)
   return me->pSamples ? me->pSamples[me->cChannels*li+iChannel] : 0;
 }
 
-// ======================================================================
-// Constructor stuff
-// ======================================================================
+/* ======================================================================
+ * Constructor stuff
+ * ====================================================================== */
 
 struct TWave *wave_new(struct TApp *pApp)
 {
@@ -100,13 +100,13 @@ struct TWave *wave_new_from_file(struct TApp *pApp, const gchar *szFile)
   SF_INFO sfi;
   struct TWave *me=wave_new(pApp);
   memset(&sfi,0,sizeof(sfi));
-  sfi.format=0; // just for the dumb
+  sfi.format=0; /* just for the dumb */
   SNDFILE *file=sf_open(szFile,SFM_READ,&sfi);
   if (file==NULL)
     {
       g_print("SNDFILE open error\n");
       free(me);
-      return NULL; // object keeps being !IsValid()
+      return NULL; /* object keeps being !IsValid() */
     }
   me->lcSamples=(long)sfi.frames;
   me->nRate=sfi.samplerate;

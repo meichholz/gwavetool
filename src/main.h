@@ -22,6 +22,9 @@ extern const char szVersion[];
 
 #define _(a) a
 
+#define true  1
+#define false 0
+
 typedef enum { rcOk=0, rcNomem=1, rcIO=2, rcBounds=3, rcUnknown=-1 } TResult ;
 
 #define DEBUG_FRAMEWORK 1

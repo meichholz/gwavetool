@@ -3,8 +3,8 @@ PACKAGE=gwavetool
 AC_INIT(src/main.cc)
 AC_PREREQ(2.57)
 AC_CONFIG_AUX_DIR(aux)
-AM_INIT_AUTOMAKE(gwavetool,0.0.7)
-AC_REVISION($Revision: 1.2 $)
+AM_INIT_AUTOMAKE(gwavetool,0.0.8)
+AC_REVISION($Revision: 1.3 $)
 AC_PROG_CXX
 dnl <<y=yScale+cyWave*pWave->PeekSample(iChannel,li)/MAXSHORT;>> demands for this:
 AC_PROG_GCC_TRADITIONAL

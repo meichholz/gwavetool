@@ -11,8 +11,8 @@
 
 void statusbar_init(struct TStatusBar *me, struct TFrame *pParent, GtkWidget *pContainer)
 {
-  me->pFrame=pParent;
   int i;
+  me->pFrame=pParent;
   me->pBox=gtk_hbox_new(false,2);
   gtk_box_pack_end(GTK_BOX(pContainer),me->pBox,false,false,2);
 
