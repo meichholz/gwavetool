@@ -89,7 +89,7 @@ double TWaveView::PointToTime(long lx)
 
 double TWaveView::SampleToTime(long li)
 {
-  class TWave *pWave=App()->Wave();
+  class TWave *pWave=pApp->pWave;
   if (!pWave->IsValid()) return 0.0;
   return (double)li/(double)(pWave->GetSampleRate());
 }
@@ -106,7 +106,7 @@ long TWaveView::TimeToPoint(double dTime)
 
 long TWaveView::TimeToSample(double dTime)
 {
-  return long(dTime*(double)(App()->Wave()->GetSampleRate()));
+  return long(dTime*(double)(pApp->pWave->GetSampleRate()));
 }
 
 /* ======================================================================
@@ -130,7 +130,7 @@ void TWaveView::SetupScroller(void)
   double dMin=WAVEVIEW_TIME_LEFT;
   double dMax=WAVEVIEW_TIME_RIGHT;
   double dFrame=dMax-dMin;
-  double dTotalTime=SampleToTime(App()->Wave()->GetSampleCount());
+  double dTotalTime=SampleToTime(pApp->pWave->GetSampleCount());
 
   // enshure full page in nonvalid waveforms, just cosmetic...
   if (dFrame<=WAVEVIEW_MIN_INTERVAL) dFrame=WAVEVIEW_MIN_INTERVAL;
@@ -151,7 +151,7 @@ void TWaveView::ZoomReset(gboolean bRepaint)
 {
   iZoom=0;
   aZoomLevel[iZoom].dLeft=0.0;
-  aZoomLevel[iZoom].dRight=SampleToTime(App()->Wave()->GetSampleCount()-1);
+  aZoomLevel[iZoom].dRight=SampleToTime(pApp->pWave->GetSampleCount()-1);
   SetupScroller();
   if (bRepaint)
     Repaint();
@@ -179,12 +179,12 @@ void TWaveView::ZoomOut(void)
 
 gboolean TWaveView::CanZoomIn(void)
 {
-  return (App()->Wave()->IsValid() && iZoom<WAVEVIEW_ZOOM_MAX-1);
+  return (pApp->pWave->IsValid() && iZoom<WAVEVIEW_ZOOM_MAX-1);
 }
 
 gboolean TWaveView::CanZoomOut(void)
 {
-  return (App()->Wave()->IsValid() && iZoom>0);
+  return (pApp->pWave->IsValid() && iZoom>0);
 }
 
 /* ======================================================================
@@ -266,7 +266,7 @@ void TWaveView::OnPaintCanvas(GdkEventExpose *pEvent,
   gdk_draw_rectangle(pDrawable,pgc,TRUE,0,0,cx,cy);
   cyWave=cy/2;
   yScale=cyWave;
-  class TWave *pWave=App()->Wave();
+  class TWave *pWave=pApp->pWave;
   if (pWave && pWave->IsValid() && iChannel<pWave->GetChannelCount())
     {
       long li;
@@ -356,7 +356,7 @@ void TWaveView::CloseRecorder(void)
 
 void *TWaveView::RecorderThread(void)
 {
-  class TWave      *pWave=App()->Wave();
+  class TWave      *pWave=pApp->pWave;
   class TStatusBar *pStatusBar=pFrame->pStatusBar;
   if (!pWave || !pWave->IsValid())
     {
@@ -385,9 +385,9 @@ void *TWaveView::RecorderThread(void)
   // ioctl(idOutputDevice,SNDCTL_DSP_RESET,NULL);
   param=AFMT_S16_LE;
   ioctl(idOutputDevice,SNDCTL_DSP_SETFMT,&param);
-  param=App()->Wave()->GetChannelCount();
+  param=pApp->pWave->GetChannelCount();
   ioctl(idOutputDevice,SNDCTL_DSP_CHANNELS,&param);
-  param=App()->Wave()->GetSampleRate();
+  param=pApp->pWave->GetSampleRate();
   ioctl(idOutputDevice,SNDCTL_DSP_SPEED,&param);
   printf("Set SPEED to %d\n",param);
 #endif
@@ -468,7 +468,7 @@ void TWaveView::StartPlay(void)
 // Constructor stuff
 // ======================================================================
 
-TWaveView::TWaveView(class TFrame *pParent, GtkWidget *pParentBox) : TBase(pParent->App())
+TWaveView::TWaveView(class TFrame *pParent, GtkWidget *pParentBox) : TBase(pParent->pApp)
 {
   pFrame=pParent;
   pCanvasLeft=gtk_drawing_area_new();

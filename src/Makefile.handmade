@@ -7,7 +7,7 @@
 # See COPYING
 #
 
-VERSION = 0.0.6
+VERSION = 0.0.7
 
 GTK_LIBS   = `pkg-config --libs gtk+-2.0` 
 GTK_CFLAGS = `pkg-config --cflags gtk+-2.0` 
@@ -31,9 +31,9 @@ CPP = g++
 
 NAME = gwavetool
 
-MODULES = menus.o waveview.o frame.o dlgabout.o toolbox.o main.o base.o app.o wave.o options.o statusbar.o
+MODULES = waveview.o frame.o dlgabout.o toolbox.o main.o base.o app.o wave.o options.o statusbar.o
 
-HEADERS = menus.h gwavetool.h dlgabout.h toolbox.h main.h base.h app.h frame.h wave.h waveview.h options.h statusbar.h
+HEADERS = gwavetool.h dlgabout.h toolbox.h main.h base.h app.h frame.h wave.h waveview.h options.h statusbar.h
 
 CCFILES = dlgabout.cc toolbox.cc main.cc base.cc app.cc frame.cc wave.cc waveview.cc
 
@@ -49,11 +49,6 @@ default: test
 $(NAME): $(MODULES)
 	echo "linking $<"
 	$(CC) $(LDFLAGS) -o $@ $(MODULES) $(CC_LIBS) $(GTK_LIBS) $(SF_LIBS) $(ESD_LIBS) $(THREAD_LIBS)
-
-menus.hc : menus.rc gwavetool.h
-	rcrc.pl menus.rc menus.hc
-
-menus.o : menus.hc
 
 edit:
 #	for i in $(WORKSET) ; do ( xemacs -geometry 83x38+20+10 -title "$$i" "$$i" & ) ; done

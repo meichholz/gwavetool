@@ -109,7 +109,7 @@ TWave::TWave(class TApp *papp, const gchar *szFile) : TBase(papp)
   long lcTotalSamples=lcSamples*cChannels;
   pSamples=new short[lcTotalSamples];
   if (!pSamples) {
-    App()->Frame()->MessageError("not enough virtual memory");
+    pApp->pFrame->MessageError("not enough virtual memory");
     lcSamples=0;
     return;
   }
@@ -117,7 +117,7 @@ TWave::TWave(class TApp *papp, const gchar *szFile) : TBase(papp)
   short *pNext=pSamples;
   while (lcSamplesLeft>0)
     {
-      App()->PollQueue();
+      app_poll_queue(pApp);
       long lcSamplesInChunk=lcSamplesLeft;
       if (lcSamplesInChunk>WAVE_FRAME_SAMPLES*cChannels)
 	lcSamplesInChunk=WAVE_FRAME_SAMPLES*cChannels;

@@ -17,55 +17,55 @@
 // Constructor/Destructor
 //
 
-TApp::TApp(int argc, char *argv[]) : TBase(this)
+void app_init(struct TApp *me,int argc, char *argv[])
 {
   g_thread_init(NULL);
   gdk_threads_init();
   gtk_init(&argc,&argv);
   
-  pWave = new TWave(this);
-  pFrame= new TFrame(this);
-  pOptions= new TOptions(this);
+  me->pWave = new TWave(me);
+  me->pFrame= new TFrame(me);
+  me->pOptions= new TOptions(me);
 }
 
-TApp::~TApp()
+void app_destroy(struct TApp *me)
 {
   debug_printf(DEBUG_FRAMEWORK,"deleting pFrame.");
-  delete pFrame;
+  delete me->pFrame;
   debug_printf(DEBUG_FRAMEWORK,"deleting pWave.");
-  delete pWave;
+  delete me->pWave;
   debug_printf(DEBUG_FRAMEWORK,"deleting pOptions.");
-  delete pOptions;
+  delete me->pOptions;
 }
 
 // ----------------------------------------------------------------------
 // Run()
 // ----------------------------------------------------------------------
 
-void TApp::PollQueue(void) 
+void app_poll_queue(struct TApp *me)
 {
-  while (bActive and gtk_events_pending ())
+  while (me->bActive and gtk_events_pending ())
     if (gtk_main_iteration ())
-      bActive=false;
+      me->bActive=false;
 }
 
-static gboolean idle_proc(void *obj)
+static gboolean _idle_proc(void *obj)
 {
-  ((TApp*)obj)->IdleTask();
+  app_idle_task((struct TApp *)obj);
   return false;
 }
 
-void TApp::IdleTask(void)
+void app_idle_task(struct TApp *me)
 {
-  pFrame->IdleTask();
+  me->pFrame->IdleTask();
 }
 
-TResult TApp::Run(void)
+TResult app_run(struct TApp *me)
 {
-  bActive=true;
-  pFrame->SyncState();
+  me->bActive=true;
+  me->pFrame->SyncState();
   gdk_threads_enter();
-  int idIdle=gtk_idle_add(idle_proc,this);
+  int idIdle=gtk_idle_add(_idle_proc,me);
   gtk_main();
   gtk_idle_remove(idIdle);
   gdk_threads_leave();
@@ -77,11 +77,11 @@ TResult TApp::Run(void)
  * NewWaveFromFile(szFile)
  * ====================================================================== */
 
-gboolean TApp::NewWaveFromFile(const gchar *szFile)
+gboolean app_new_wave_from_file(struct TApp *me, const gchar *szFile)
 {
-  delete pWave;
-  pWave=new TWave(this,szFile);
-  return pWave->IsValid();
+  delete me->pWave;
+  me->pWave=new TWave(me,szFile);
+  return me->pWave->IsValid();
 }
 
 
@@ -89,8 +89,9 @@ gboolean TApp::NewWaveFromFile(const gchar *szFile)
  * CanClose()
  * ====================================================================== */
 
-gboolean TApp::CanClose()
+gboolean app_can_close(struct TApp *me)
 {
-  if (Wave() && Wave()->IsValid()) return ! Wave()->IsDirty();
+  if (me->pWave && me->pWave->IsValid())
+     return ! me->pWave->IsDirty();
   return true;
 }

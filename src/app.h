@@ -3,29 +3,19 @@
 
 #include "base.h"
 
-class TApp : public TBase {
-
- protected:
+struct TApp {
   class TFrame   *pFrame;
   class TWave    *pWave;
   class TOptions *pOptions;
   gboolean       bActive;
-
- public:
-
-  /* constructors */
-           TApp(int argc, char *argv[]);
-  virtual ~TApp();
-  class TWave  *Wave(void) { return pWave; }
-  class TFrame *Frame(void) { return pFrame; }
-  TResult Run();
-  gboolean NewWaveFromFile(const gchar *szFile);
-
-  gboolean CanClose(void);
-
-  void    PollQueue(void);
-  void    IdleTask(void);
-
 };
+
+void     app_init (struct TApp *papp, int argc, char *argv[]);
+void     app_destroy(struct TApp *papp);
+TResult  app_run(struct TApp *papp);
+gboolean app_new_wave_from_file(struct TApp *papp, const gchar *szFile);
+gboolean app_can_close(struct TApp *papp);
+void     app_poll_queue(struct TApp *papp);
+void     app_idle_task(struct TApp *papp);
 
 #endif

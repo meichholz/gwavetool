@@ -16,7 +16,7 @@ gint TAboutDialog::DoModal(gint idDefault)
 TAboutDialog::TAboutDialog(class TApp *papp) : TBase(papp)
 {
   pdlg=GTK_DIALOG(gtk_dialog_new_with_buttons("About GWaveTool",
-				   App()->Frame()->Window(),
+				   pApp->pFrame->Window(),
 				   GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
 				   GTK_STOCK_OK,
 				   GTK_RESPONSE_ACCEPT,

@@ -8,7 +8,6 @@
 #include "waveview.h"
 #include "dlgabout.h"
 #include "statusbar.h"
-#include "menus.h"
 
 #include <stdarg.h>
 
@@ -130,14 +129,14 @@ void TFrame::OnMenuNew(void)
 void TFrame::SetBusyCursor(gboolean bBusy)
 {
    gdk_window_set_cursor(pwndTop->window,gdk_cursor_new(bBusy ? GDK_WATCH : GDK_LEFT_PTR));
-   App()->PollQueue();
+   app_poll_queue(pApp);
 }
 
 void TFrame::OnMenuLoad(void)
 {
   GtkFileSelection *psel;
   GtkWidget *pdlg;
-  if (!App()->CanClose()) return;
+  if (!app_can_close(pApp)) return;
   pdlg=gtk_file_selection_new(_("Open Waveform file"));
   psel=GTK_FILE_SELECTION(pdlg);
   gtk_widget_show(pdlg);
@@ -155,7 +154,7 @@ void TFrame::OnMenuLoad(void)
   const gchar *szFile=gtk_file_selection_get_filename(psel);
   gtk_widget_destroy(pdlg);
   SetBusyCursor(true);
-  gboolean bOk=App()->NewWaveFromFile(szFile);
+  gboolean bOk=app_new_wave_from_file(pApp,szFile);
   SetBusyCursor(false);
   if (bOk)
     SetLastFilename(szFile);
@@ -173,7 +172,7 @@ TResult TFrame::ActivateLRU(int iLRUfile)
 {
   char *szFile=apstrLRU[iLRUfile]->str;
   SetBusyCursor(true);
-  gboolean bOk=App()->NewWaveFromFile(szFile);
+  gboolean bOk=app_new_wave_from_file(pApp,szFile);
   SetBusyCursor(false);
   if (bOk)
     SetLastFilename(szFile);
@@ -210,13 +209,13 @@ gboolean TFrame::OnMenu(guint id)
     case ID_SAVEAS: OnMenuSaveAs(); break;
     case ID_QUIT:
       // TODO: depends on the state (aka CanClose())
-      if (App()->CanClose() || 
+      if (app_can_close(pApp) || 
 	  MessageConfirm("Thus this great application *really* be shut down, my dear?"))
 	gtk_main_quit();
       break;
       // demo menu
     case ID_DEMO_INIT:
-      App()->Wave()->CreateSamples();
+      pApp->pWave->CreateSamples();
       pWaveView->ZoomReset();
       Repaint();
       break;
@@ -235,7 +234,7 @@ gboolean TFrame::OnMenu(guint id)
       ActivateLRU(id-ID_LASTFILE1);
       break;
     case ID_ABOUT:
-      { TAboutDialog dlg(App());
+      { TAboutDialog dlg(pApp);
         dlg.DoModal();
       }
       break;
@@ -320,7 +319,6 @@ TFrame::TFrame(class TApp *papp) : TBase(papp)
   gtk_item_factory_create_items(pmif,cItems,menuTemplate,this);
   gtk_window_add_accel_group(GTK_WINDOW(pwndTop),pag);
   pMenu=gtk_item_factory_get_widget(pmif,"<main>");
-  pMainMenu = new TMenu("MainMenu",this);
 
   for (i=0; i<FRAME_LRU_NUM; i++)
     {
@@ -377,7 +375,6 @@ TFrame::~TFrame()
   bDead=true;
   delete pWaveView;
   delete pStatusBar;
-  delete pMainMenu;
   g_object_unref(pmif);
   g_string_free(pstrLastFile,true);
   for (i=0; i<FRAME_LRU_NUM; i++)
@@ -399,9 +396,9 @@ void TFrame::SyncState(void)
   g_string_sprintf(pstrCaption,"%s - %s",szAppTitle,pstrLastFile->str);
   gtk_window_set_title(GTK_WINDOW(pwndTop),pstrCaption->str);
   g_string_free(pstrCaption,true);
-  gboolean bHaveFile=(NULL != App()->Wave()
-		      && App()->Wave()->IsValid()
-		      && App()->Wave()->GetSampleCount());
+  gboolean bHaveFile=(NULL != pApp->pWave
+		      && pApp->pWave->IsValid()
+		      && pApp->pWave->GetSampleCount());
   enum TState { empty, normal, selection, playing, recording, busy } newstate;
   /* funny stuff to detect running recording or playing code */
   if (false)

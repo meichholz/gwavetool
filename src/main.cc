@@ -38,9 +38,9 @@ void debug_printf(int debug_class,const char *szFormat, ...)
 int main(int argc, char *argv[])
 {
 
-  TApp *papp=new TApp(argc,argv);
-  papp->Run();
-  delete papp;
-
+  struct TApp app;
+  app_init(&app,argc,argv);
+  app_run(&app);
+  app_destroy(&app);
   return 0;
 }

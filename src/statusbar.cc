@@ -9,7 +9,7 @@
 // Constructor stuff
 // ======================================================================
 
-TStatusBar::TStatusBar(class TFrame *pParent,GtkWidget *pContainer) : TBase(pParent->App())
+TStatusBar::TStatusBar(class TFrame *pParent,GtkWidget *pContainer) : TBase(pParent->pApp)
 {
   pFrame=pParent;
   int i;

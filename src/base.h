@@ -33,14 +33,10 @@ void procMenu(class TBase *p,guint uID, GtkWidget *pMenu);
 
 class TBase {
 
- private:
-  class TApp *papp;
-
  public:
-              TBase(class TApp *pappIn) { papp=pappIn; };
+  struct  TApp *pApp;
+              TBase(struct TApp *pappIn) { pApp=pappIn; };
   virtual    ~TBase() {};
-  class TApp *App(void) { return papp; };
-
   virtual void OnPaint(GdkEventExpose *pEvent) { };
   virtual void OnConfigure(GdkEventConfigure *pEvent) { };
   virtual void OnDelete(GdkEventAny *pEvent) { };
