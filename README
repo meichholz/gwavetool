@@ -1,0 +1,22 @@
+Q&D install instructions
+========================
+
+The build harness is far from begin clean.
+
+For a Q&D compile run, try this to get a working binary (recommented):
+
+	cd src
+	make -f Makefile.handmade
+	./gwavetool
+
+You can also try to "configure" using these steps (may be broken):
+
+	./bootstrap.sh
+	./configure --prefix=/usr/....
+	make
+	make install
+
+Since there is no project specific library / pkgconfig stuff, You may safely
+install and remove the binary later.
+
+	
