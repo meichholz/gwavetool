@@ -14,48 +14,48 @@
 // CreateSamples()
 // ----------------------------------------------------------------------
 
-TResult TWave::CreateSamples(void) /* demo function */
+TResult wave_create_samples(struct TWave *me)
 {
   long i;
-  nRate        = 50;
-  lcSamples    = 500;
-  pSamples     = new short[lcSamples];
-  cChannels    = 1;
-  if (!pSamples) return rcNomem;
+  me->nRate        = 50;
+  me->lcSamples    = 500;
+  me->pSamples     = new short[me->lcSamples];
+  me->cChannels    = 1;
+  if (!me->pSamples) return rcNomem;
 
-  bDirty=true;
+  me->bDirty=true;
 
-  for (i=0; i<lcSamples; i++)
+  for (i=0; i<me->lcSamples; i++)
     {
-      pSamples[i]=short(32767*sin(2.0*M_PI*i/nRate));
+      me->pSamples[i]=short(32767*sin(2.0*M_PI*i/me->nRate));
     }
   return rcOk;
 }
 
 /* ======================================================================
  * GetFrame()
- * reads a whole frame of cChannels * WAVE_FRAME_SAMPLES shorts
+ * reads a whole frame of me->cChannels * WAVE_FRAME_SAMPLES shorts
  * ====================================================================== */
 
-TResult TWave::GetFrame(short *pBuffer, long liFrame)
+TResult wave_get_frame(struct TWave *me, short *psSamples, long liFrame)
 {
-  if (!pSamples)
+  if (!me->pSamples)
     {
       debug_printf(DEBUG_WAVE,"GetFrame() with no samples");
       return rcBounds;
     }
-  long li=cChannels*WAVE_FRAME_SAMPLES*liFrame;
-  if (li<0 || li>lcSamples*cChannels)
+  long li=me->cChannels*WAVE_FRAME_SAMPLES*liFrame;
+  if (li<0 || li>me->lcSamples*me->cChannels)
     {
-      debug_printf(DEBUG_WAVE,"GetFrame() out of bounds: li=%ld(%ld)",li,lcSamples);
+      debug_printf(DEBUG_WAVE,"GetFrame() out of bounds: li=%ld(%ld)",li,me->lcSamples);
       return rcBounds;
     }
-  long lcToMove=WAVE_FRAME_SAMPLES*cChannels; // in shorts!!!
-  memset(pBuffer,0,lcToMove); /* trailing bytes are initialised */
-  if (li+lcToMove>lcSamples*cChannels)
-    lcToMove=lcSamples*cChannels-li;
+  long lcToMove=WAVE_FRAME_SAMPLES*me->cChannels; // in shorts!!!
+  memset(psSamples,0,lcToMove); /* trailing bytes are initialised */
+  if (li+lcToMove>me->lcSamples*me->cChannels)
+    lcToMove=me->lcSamples*me->cChannels-li;
   debug_printf(DEBUG_WAVE,"giving frame %ld size %ld at %lx",liFrame,lcToMove,li);
-  memcpy(pBuffer,pSamples+li,lcToMove*sizeof(short));
+  memcpy(psSamples,me->pSamples+li,lcToMove*sizeof(short));
   return rcOk;
 }
 
@@ -63,80 +63,116 @@ TResult TWave::GetFrame(short *pBuffer, long liFrame)
  * PeekSample()
  * ====================================================================== */
 
-short TWave::PeekSample(int iChannel, long li)
+short   wave_peek_sample(struct TWave *me, int iChannel, long li)
 {
-  if (!pSamples)
+  if (!me->pSamples)
     {
       debug_printf(DEBUG_WAVE,"peek with no samples");
       return 0;
     }
-  if (iChannel>=cChannels || iChannel<0 || li>=lcSamples || li<0)
+  if (iChannel>=me->cChannels || iChannel<0 || li>=me->lcSamples || li<0)
     {
-      debug_printf(DEBUG_WAVE,"bounds: ch:%d, i:%ld(%ld)",iChannel,li,lcSamples);
+      debug_printf(DEBUG_WAVE,"bounds: ch:%d, i:%ld(%ld)",iChannel,li,me->lcSamples);
       return 0;
     }
-  return pSamples ? pSamples[cChannels*li+iChannel] : 0;
+  return me->pSamples ? me->pSamples[me->cChannels*li+iChannel] : 0;
 }
 
 // ======================================================================
 // Constructor stuff
 // ======================================================================
 
-TWave::TWave(class TApp *papp) : TBase(papp)
+struct TWave *wave_new(struct TApp *pApp)
 {
-  pSamples=NULL; bDirty=false;
+  struct TWave *me=(struct TWave *)malloc(sizeof(struct TWave));
+  me->pSamples=NULL; me->bDirty=false;
+  me->pApp=pApp;
+  return me;
 }
 
 /* ======================================================================
  * Construction from WAV (e.g.) file
+ * return NULL on errors
  * ====================================================================== */
 
-TWave::TWave(class TApp *papp, const gchar *szFile) : TBase(papp)
+struct TWave *wave_new_from_file(struct TApp *pApp, const gchar *szFile)
 {
   SF_INFO sfi;
-  pSamples=NULL; bDirty=false;
+  struct TWave *me=wave_new(pApp);
   memset(&sfi,0,sizeof(sfi));
   sfi.format=0; // just for the dumb
   SNDFILE *file=sf_open(szFile,SFM_READ,&sfi);
   if (file==NULL)
     {
       g_print("SNDFILE open error\n");
-      return; // object keeps being !IsValid()
+      free(me);
+      return NULL; // object keeps being !IsValid()
     }
-  lcSamples=(long)sfi.frames;
-  nRate=sfi.samplerate;
-  cChannels=sfi.channels;
-  long lcTotalSamples=lcSamples*cChannels;
-  pSamples=new short[lcTotalSamples];
-  if (!pSamples) {
-    frame_message_error(pApp->pFrame,"not enough virtual memory");
-    lcSamples=0;
-    return;
+  me->lcSamples=(long)sfi.frames;
+  me->nRate=sfi.samplerate;
+  me->cChannels=sfi.channels;
+  long lcTotalSamples=me->lcSamples*me->cChannels;
+  me->pSamples=(short*)calloc(lcTotalSamples,sizeof(short));
+  if (!me->pSamples) {
+    frame_message_error(me->pApp->pFrame,"not enough virtual memory");
+    me->lcSamples=0;
+    free(me);
+    return NULL;
   }
   long lcSamplesLeft=lcTotalSamples;
-  short *pNext=pSamples;
+  short *pNext=me->pSamples;
   while (lcSamplesLeft>0)
     {
-      app_poll_queue(pApp);
+      app_poll_queue(me->pApp);
       long lcSamplesInChunk=lcSamplesLeft;
-      if (lcSamplesInChunk>WAVE_FRAME_SAMPLES*cChannels)
-	lcSamplesInChunk=WAVE_FRAME_SAMPLES*cChannels;
+      if (lcSamplesInChunk>WAVE_FRAME_SAMPLES*me->cChannels)
+	lcSamplesInChunk=WAVE_FRAME_SAMPLES*me->cChannels;
       lcSamplesLeft-=lcSamplesInChunk;
       if (lcSamplesInChunk!=sf_read_short(file,pNext,lcSamplesInChunk))
 	{
 	  debug_printf(DEBUG_WAVE,"read error: %s\n",sf_strerror(file));
-	  lcSamples=0;
-	  delete [] pSamples;
-	  pSamples=NULL;
+	  me->lcSamples=0;
+	  free(me->pSamples);
+	  me->pSamples=NULL;
 	  sf_close(file);
-	  return;
+	  free(me);
+	  return NULL;
 	}
       pNext+=lcSamplesInChunk;
     }
   sf_close(file);
+  return me;
 }
 
-TWave::~TWave()
+void wave_free(struct TWave *me)
 {
-  delete [] pSamples;
+  if (me)
+    {
+      if (me->pSamples)
+	free(me->pSamples);
+      free(me);
+    }
 }
+
+/* **********************************************************************
+ * Interface functions
+ * ********************************************************************** */
+
+int     wave_get_frame_size(struct TWave *me)
+  { return WAVE_FRAME_SAMPLES*me->cChannels; }
+long    wave_get_frame_count(struct TWave *me)
+ { return (WAVE_FRAME_SAMPLES-1+me->lcSamples)/WAVE_FRAME_SAMPLES; }
+
+long    wave_get_sample_count(struct TWave *me)
+  { return me->lcSamples; }
+int     wave_get_channel_count(struct TWave *me)
+  { return me->cChannels; }
+int     wave_get_sample_rate(struct TWave *me)
+  { return me->nRate; }
+
+gboolean wave_is_valid(struct TWave *me)
+  { return (me!=NULL && me->pSamples!=NULL) ? true : false ; }
+gboolean wave_is_dirty(struct TWave *me)
+  { return me->bDirty; }
+void     wave_set_dirty(struct TWave *me, gboolean b)
+  { me->bDirty=b; }

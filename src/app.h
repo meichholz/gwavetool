@@ -5,7 +5,7 @@
 
 struct TApp {
   struct TFrame  *pFrame;
-  class TWave    *pWave;
+  struct TWave   *pWave;
   gboolean       bActive;
 };
 

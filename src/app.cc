@@ -21,7 +21,7 @@ void app_init(struct TApp *me,int argc, char *argv[])
   g_thread_init(NULL);
   gdk_threads_init();
   gtk_init(&argc,&argv);
-  me->pWave = new TWave(me);
+  me->pWave = wave_new(me);
   me->pFrame= (struct TFrame *)malloc(sizeof(TFrame)); frame_init(me->pFrame,me);
 }
 
@@ -30,7 +30,7 @@ void app_destroy(struct TApp *me)
   debug_printf(DEBUG_FRAMEWORK,"deleting pFrame.");
   frame_destroy(me->pFrame); free(me->pFrame);
   debug_printf(DEBUG_FRAMEWORK,"deleting pWave.");
-  delete me->pWave;
+  wave_free(me->pWave);
 }
 
 // ----------------------------------------------------------------------
@@ -74,9 +74,9 @@ TResult app_run(struct TApp *me)
 
 gboolean app_new_wave_from_file(struct TApp *me, const gchar *szFile)
 {
-  delete me->pWave;
-  me->pWave=new TWave(me,szFile);
-  return me->pWave->IsValid();
+  wave_free(me->pWave);
+  me->pWave=wave_new_from_file(me,szFile);
+  return wave_is_valid(me->pWave);
 }
 
 
@@ -86,7 +86,7 @@ gboolean app_new_wave_from_file(struct TApp *me, const gchar *szFile)
 
 gboolean app_can_close(struct TApp *me)
 {
-  if (me->pWave && me->pWave->IsValid())
-     return ! me->pWave->IsDirty();
+  if (wave_is_valid(me->pWave))
+     return ! wave_is_dirty(me->pWave);
   return true;
 }

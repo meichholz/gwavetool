@@ -8,36 +8,31 @@
 
 #define WAVE_FRAME_SAMPLES  1024
 
-class TWave : public TBase {
-
- protected:
+struct TWave {
+  struct TApp *pApp;
   short    *pSamples;
   long      lcSamples;
   int       nRate;
   int       cChannels;
   gboolean  bDirty;
-
- public:
-
-  /* constructors */
-           TWave(class TApp *papp);
-           TWave(class TApp *papp,const gchar *szFile);
-  virtual ~TWave();
-
-  TResult  CreateSamples(void);
-
-  int      GetFrameSize(void) { return WAVE_FRAME_SAMPLES*cChannels; }
-  long     GetFrameCount(void) { return (WAVE_FRAME_SAMPLES-1+lcSamples)/WAVE_FRAME_SAMPLES; }
-
-  long     GetSampleCount(void) { return lcSamples; }
-  int      GetChannelCount(void) { return cChannels; }
-  int      GetSampleRate(void) { return nRate; }
-  short    PeekSample(int iChannel, long li);
-  TResult  GetFrame(short *psSamples, long liFrame);
-
-  gboolean IsValid(void) { return (pSamples!=NULL) ? true : false ; }
-  gboolean IsDirty(void) { return bDirty; }
-  void     SetDirty(gboolean b) { bDirty=b; }
 };
+
+struct TWave *wave_new(struct TApp *pApp);
+struct TWave *wave_new_from_file(struct TApp *pApp, const gchar *szFile);
+void          wave_free(struct TWave *me);
+
+TResult wave_create_samples(struct TWave *me);
+TResult wave_get_frame(struct TWave *me, short *psSamples, long liFrame);
+int     wave_get_frame_size(struct TWave *me);
+long    wave_get_frame_count(struct TWave *me);
+
+long    wave_get_sample_count(struct TWave *me);
+int     wave_get_channel_count(struct TWave *me);
+int     wave_get_sample_rate(struct TWave *me);
+short   wave_peek_sample(struct TWave *me, int iChannel, long li);
+
+gboolean wave_is_valid(struct TWave *me);
+gboolean wave_is_dirty(struct TWave *me);
+void     wave_set_dirty(struct TWave *me, gboolean b);
 
 #endif

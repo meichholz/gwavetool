@@ -113,9 +113,9 @@ double waveview_point_to_time(struct TWaveView *me, long lx)
 
 double waveview_sample_to_time(struct TWaveView *me, long li)
 {
-  class TWave *pWave=me->pApp->pWave;
-  if (!pWave->IsValid()) return 0.0;
-  return (double)li/(double)(pWave->GetSampleRate());
+  struct TWave *pWave=me->pApp->pWave;
+  if (!wave_is_valid(pWave)) return 0.0;
+  return (double)li/(double)(wave_get_sample_rate(pWave));
 }
 
 long   waveview_time_to_point(struct TWaveView *me, double dTime)
@@ -130,7 +130,7 @@ long   waveview_time_to_point(struct TWaveView *me, double dTime)
 
 long   waveview_time_to_sample(struct TWaveView *me, double dTime)
 {
-  return long(dTime*(double)(me->pApp->pWave->GetSampleRate()));
+  return long(dTime*(double)(wave_get_sample_rate(me->pApp->pWave)));
 }
 
 /* ======================================================================
@@ -154,7 +154,7 @@ void     waveview_setup_scroller(struct TWaveView *me)
   double dMin=WAVEVIEW_TIME_LEFT;
   double dMax=WAVEVIEW_TIME_RIGHT;
   double dFrame=dMax-dMin;
-  double dTotalTime=waveview_sample_to_time(me,me->pApp->pWave->GetSampleCount());
+  double dTotalTime=waveview_sample_to_time(me,wave_get_sample_count(me->pApp->pWave));
 
   // enshure full page in nonvalid waveforms, just cosmetic...
   if (dFrame<=WAVEVIEW_MIN_INTERVAL) dFrame=WAVEVIEW_MIN_INTERVAL;
@@ -175,7 +175,7 @@ void     waveview_zoom_reset(struct TWaveView *me, gboolean bRepaint)
 {
   me->iZoom=0;
   me->aZoomLevel[me->iZoom].dLeft=0.0;
-  me->aZoomLevel[me->iZoom].dRight=waveview_sample_to_time(me,me->pApp->pWave->GetSampleCount()-1);
+  me->aZoomLevel[me->iZoom].dRight=waveview_sample_to_time(me,wave_get_sample_count(me->pApp->pWave)-1);
   waveview_setup_scroller(me);
   if (bRepaint)
     waveview_repaint(me);
@@ -203,12 +203,12 @@ void     waveview_zoom_out(struct TWaveView *me)
 
 gboolean waveview_can_zoom_in(struct TWaveView *me)
 {
-  return (me->pApp->pWave->IsValid() && me->iZoom<WAVEVIEW_ZOOM_MAX-1);
+  return (wave_is_valid(me->pApp->pWave) && me->iZoom<WAVEVIEW_ZOOM_MAX-1);
 }
 
 gboolean waveview_can_zoom_out(struct TWaveView *me)
 {
-  return (me->pApp->pWave->IsValid() && me->iZoom>0);
+  return (wave_is_valid(me->pApp->pWave) && me->iZoom>0);
 }
 
 /* ======================================================================
@@ -290,8 +290,8 @@ void   waveview_on_paint_canvas(struct TWaveView *me, GdkEventExpose *pEvent,
   gdk_draw_rectangle(pDrawable,pgc,TRUE,0,0,cx,cy);
   cyWave=cy/2;
   yScale=cyWave;
-  class TWave *pWave=me->pApp->pWave;
-  if (pWave && pWave->IsValid() && iChannel<pWave->GetChannelCount())
+  struct TWave *pWave=me->pApp->pWave;
+  if (pWave && wave_is_valid(pWave) && iChannel<wave_get_channel_count(pWave))
     {
       long li;
       gint x0,y0,x,y;
@@ -306,7 +306,7 @@ void   waveview_on_paint_canvas(struct TWaveView *me, GdkEventExpose *pEvent,
 	{
 	  x=waveview_time_to_point(me,dTime);
 	  li=waveview_time_to_sample(me,dTime);
-	  y=yScale+cyWave*pWave->PeekSample(iChannel,li)/MAXSHORT;
+	  y=yScale+cyWave*wave_peek_sample(pWave,iChannel,li)/MAXSHORT;
 	  if (!li) { x0=x; y0=y; }
 	  gdk_draw_line(pDrawable,pgc,x0,y0,x,y);
 	  x0=x; y0=y;
@@ -364,9 +364,9 @@ void     waveview_close_recorder(struct TWaveView *me)
 
 void*    waveview_recorder_thread(struct TWaveView *me)
 {
-  class TWave      *pWave=me->pApp->pWave;
+  struct TWave      *pWave=me->pApp->pWave;
   struct TStatusBar *pStatusBar=me->pFrame->pStatusBar;
-  if (!pWave || !pWave->IsValid())
+  if (!pWave || !wave_is_valid(pWave))
     {
       me->stateRecorder=idle;
       waveview_close_recorder(me);
@@ -374,7 +374,7 @@ void*    waveview_recorder_thread(struct TWaveView *me)
     }
   /* TODO: setting channels, samplerate and so on */
   int li;
-  short *psBuffer=new short[pWave->GetFrameSize()];
+  short *psBuffer=new short[wave_get_frame_size(pWave)];
   if (!psBuffer)
     {
       me->stateRecorder=idle;
@@ -393,9 +393,9 @@ void*    waveview_recorder_thread(struct TWaveView *me)
   // ioctl(me->idOutputDevice,SNDCTL_DSP_RESET,NULL);
   param=AFMT_S16_LE;
   ioctl(me->idOutputDevice,SNDCTL_DSP_SETFMT,&param);
-  param=me->pApp->pWave->GetChannelCount();
+  param=wave_get_channel_count(me->pApp->pWave);
   ioctl(me->idOutputDevice,SNDCTL_DSP_CHANNELS,&param);
-  param=me->pApp->pWave->GetSampleRate();
+  param=wave_get_sample_rate(me->pApp->pWave);
   ioctl(me->idOutputDevice,SNDCTL_DSP_SPEED,&param);
   printf("Set SPEED to %d\n",param);
 #endif
@@ -410,12 +410,12 @@ void*    waveview_recorder_thread(struct TWaveView *me)
 	  gdk_threads_enter();
 	  statusbar_set_percentage(pStatusBar,(double)(li-liStart)/(double)(liEnd-liStart));
 	  gdk_threads_leave();
-	  pWave->GetFrame(psBuffer,li);
+	  wave_get_frame(pWave,psBuffer,li);
 #ifdef CONFIG_USE_ESD
-	  esd_audio_write(psBuffer,pWave->GetFrameSize()*sizeof(short));
+	  esd_audio_write(psBuffer,wave_get_frame_size(pWave)*sizeof(short));
 #endif
 #ifdef CONFIG_USE_OSS
-	  write(me->idOutputDevice,psBuffer,pWave->GetFrameSize()*sizeof(short));
+	  write(me->idOutputDevice,psBuffer,wave_get_frame_size(pWave)*sizeof(short));
 #endif
 	}
       break;

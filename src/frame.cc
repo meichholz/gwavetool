@@ -226,7 +226,7 @@ gboolean frame_on_menu(struct TFrame *me, guint id)
       break;
       /* demo menu */
     case ID_DEMO_INIT:
-      me->pApp->pWave->CreateSamples();
+      wave_create_samples(me->pApp->pWave);
       waveview_zoom_reset(me->pWaveView,true);
       frame_repaint(me);
       break;
@@ -417,8 +417,8 @@ void frame_sync_state(struct TFrame *me)
   gtk_window_set_title(GTK_WINDOW(me->pwndTop),pstrCaption->str);
   g_string_free(pstrCaption,true);
   gboolean bHaveFile=(NULL != me->pApp->pWave
-		      && me->pApp->pWave->IsValid()
-		      && me->pApp->pWave->GetSampleCount());
+		      && wave_is_valid(me->pApp->pWave)
+		      && wave_get_sample_count(me->pApp->pWave));
   enum TState { empty, normal, selection, playing, recording, busy } newstate;
   /* funny stuff to detect running recording or playing code */
   if (false)
