@@ -4,11 +4,12 @@ AC_INIT(src/main.c)
 AC_PREREQ(2.57)
 AC_CONFIG_AUX_DIR(aux)
 AM_INIT_AUTOMAKE(gwavetool,0.0.9)
-AC_REVISION($Revision: 1.4 $)
+AC_REVISION($Revision: 1.5 $)
 AC_PROG_CC
 dnl <<y=yScale+cyWave*pWave->PeekSample(iChannel,li)/MAXSHORT;>> demands for this:
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_MAKE_SET
+AC_PROG_LN_S
 AC_C_CONST
 AC_C_VOLATILE
 AC_FUNC_FORK

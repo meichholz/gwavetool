@@ -13,7 +13,7 @@ rm src/gwavetool.glade t config.* configure.scan src/config.h */.deps 2>/dev/nul
 
 test "$1" = "-c" && exit
 
-ln -s ui/gwavetool.glade src/
+ln -s $PWD/ui/gwavetool.glade src/
 
 autoscan
 aclocal -I acextra
