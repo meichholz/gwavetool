@@ -171,7 +171,7 @@ void         frame_on_menu_load(struct TFrame *me)
   else
     frame_message_error(me,"cannot open %s",szFile);
   frame_repaint(me);
-  me->pWaveView->ZoomReset();
+  waveview_zoom_reset(me->pWaveView,true);
 }
 
 /* ======================================================================
@@ -188,7 +188,7 @@ TResult frame_activate_LRU(struct TFrame *me, int iLRUfile)
     frame_set_last_filename(me,szFile);
   else
     frame_message_error(me,"cannot open %s",szFile);
-  me->pWaveView->ZoomReset();
+  waveview_zoom_reset(me->pWaveView,true);
   frame_sync_state(me);
   frame_repaint(me);
   return bOk ? rcOk : rcIO;
@@ -227,16 +227,16 @@ gboolean frame_on_menu(struct TFrame *me, guint id)
       /* demo menu */
     case ID_DEMO_INIT:
       me->pApp->pWave->CreateSamples();
-      me->pWaveView->ZoomReset();
+      waveview_zoom_reset(me->pWaveView,true);
       frame_repaint(me);
       break;
       /* Help Menu */
-    case ID_VIEW_STOP:     me->pWaveView->AbortRecorder(); break;
-    case ID_VIEW_PLAY:     me->pWaveView->StartPlay(); return true; /* no repaint! */
+    case ID_VIEW_STOP:     waveview_abort_recorder(me->pWaveView); break;
+    case ID_VIEW_PLAY:     waveview_start_play(me->pWaveView); return true; /* no repaint! */
     case ID_VIEW_RECORD:   frame_message_notimplemented(me); break;
-    case ID_VIEW_ZOOMIN:   me->pWaveView->ZoomIn(); break;
-    case ID_VIEW_ZOOMOUT:  me->pWaveView->ZoomOut(); break;
-    case ID_VIEW_ZOOM0:    me->pWaveView->ZoomReset(); break;
+    case ID_VIEW_ZOOMIN:   waveview_zoom_in(me->pWaveView); break;
+    case ID_VIEW_ZOOMOUT:  waveview_zoom_out(me->pWaveView); break;
+    case ID_VIEW_ZOOM0:    waveview_zoom_reset(me->pWaveView,true); break;
     case ID_LASTFILE1:
     case ID_LASTFILE2:
     case ID_LASTFILE3:
@@ -318,6 +318,10 @@ static GtkItemFactoryEntry menuTemplate[] = {
     {"/Help/_About...",NULL,ITEMCB(procLocalMenu),ID_ABOUT,NULL},
   };
 
+/* NOTE: all callbacks have now to be LOCAL since we have no longer virtual stuff at hand!!! */
+
+void frame_procDelete(GObject *pobject, GdkEventAny *pEvent, struct TFrame *me) { frame_on_delete(me,pEvent); }
+
 void frame_init(struct TFrame *me, struct TApp *papp)
 {
   int i;
@@ -362,13 +366,13 @@ void frame_init(struct TFrame *me, struct TApp *papp)
   gtk_box_pack_start(GTK_BOX(me->pVbox),me->pMenu,FALSE,FALSE,0);
   gtk_widget_show(me->pMenu);
 
-  me->pWaveView = new TWaveView(me,me->pVbox);
+  me->pWaveView = (struct TWaveView*)malloc(sizeof(struct TWaveView)); waveview_init(me->pWaveView,me,me->pVbox);
   me->pStatusBar = new TStatusBar(me,me->pVbox);
 
   gtk_widget_show(me->pVbox);
 
-  g_signal_connect(G_OBJECT(me->pwndTop), EVENT_TYPE_DELETE, G_CALLBACK(procDelete),me);
-  g_signal_connect(G_OBJECT(me->pwndTop), EVENT_TYPE_DELETE, G_CALLBACK(procDelete),me);
+  g_signal_connect(G_OBJECT(me->pwndTop), EVENT_TYPE_DELETE, G_CALLBACK(frame_procDelete),me);
+  g_signal_connect(G_OBJECT(me->pwndTop), EVENT_TYPE_DELETE, G_CALLBACK(frame_procDelete),me);
 
   /* --- geometry and arrangement */
   /* gtk_window_parse_geometry       (GTK_WINDOW(me->pwndTop), szOptGeometry); */
@@ -387,7 +391,7 @@ void frame_destroy(struct TFrame *me)
 {
   int i;
   me->bDead=true;
-  delete me->pWaveView;
+  waveview_destroy(me->pWaveView); free(me->pWaveView);
   delete me->pStatusBar;
   g_object_unref(me->pmif);
   g_string_free(me->pstrLastFile,true);
@@ -429,11 +433,11 @@ void frame_sync_state(struct TFrame *me)
 
   gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/File/Save"),bHaveFile);
   gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/File/Save as..."),bHaveFile);
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Zoom in"),bHaveFile && me->pWaveView->CanZoomIn());
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Zoom out"),bHaveFile && me->pWaveView->CanZoomOut());
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Play"),bHaveFile && me->pWaveView->IsBusy());
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Record"),bHaveFile && me->pWaveView->IsBusy());
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Stop"),bHaveFile && !(me->pWaveView->IsBusy()));
+  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Zoom in"),bHaveFile && waveview_can_zoom_in(me->pWaveView));
+  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Zoom out"),bHaveFile && waveview_can_zoom_out(me->pWaveView));
+  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Play"),bHaveFile && waveview_is_busy(me->pWaveView));
+  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Record"),bHaveFile && waveview_is_busy(me->pWaveView));
+  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Stop"),bHaveFile && !waveview_is_busy(me->pWaveView));
 }
 
 /* ======================================================================

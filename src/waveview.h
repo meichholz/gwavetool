@@ -7,11 +7,10 @@
 
 typedef enum { idle, aborted, play, record } TRecorderState;
 
-class TWaveView : public TBase {
+struct TWaveView {
 
- private:
-
-  class TFrame   *pFrame;
+  struct TFrame  *pFrame;
+  struct TApp    *pApp;
 
   GtkWidget      *pCanvasLeft;
   GtkWidget      *pCanvasRight;
@@ -28,42 +27,38 @@ class TWaveView : public TBase {
   struct TZoomLevel {
     double dLeft,dRight; /* in seconds */
   } aZoomLevel[WAVEVIEW_ZOOM_MAX];
-
- private:
-  void     CloseRecorder(void);
-
- public:
-
-           TWaveView(class TFrame *pParentIn, GtkWidget *pParentBoxIn);
-  virtual ~TWaveView();
-
-          void   GetTimeCode(gchar *szBuffer, int cchBufferMax, double dTime);
-	  double PointToTime(long lx);
-	  double SampleToTime(long li);
-	  long   TimeToSample(double dTime);
-	  long   TimeToPoint(double dTime);
-
-  virtual void OnPaintCanvas(GdkEventExpose *pEvent,
-			     GtkWidget *pCanvas,
-			     int iChannel);
-  virtual void OnPaint(GdkEventExpose *pEvent);
-  virtual void Repaint(void);
-  virtual gboolean OnMouseMove(GdkEventMotion *pEvent);
-  virtual gboolean OnMouseButton(GdkEventButton *pEvent);
-  virtual void OnRangeValue(GtkRange *pScroller);
-
-  gboolean CanZoomOut(void);
-  gboolean CanZoomIn(void);
-  void     ZoomIn(void);
-  void     ZoomOut(void);
-  void     ZoomReset(gboolean bRepaint=true);
-  void     SetupScroller(void);
-  
-  void     AbortRecorder(void) { stateRecorder=aborted; }
-  void     StartPlay(void);
-  void     *RecorderThread(void); /* must be public, called from wrapper */
-  gboolean IsBusy(void) { return stateRecorder==idle; }
-  
 };
 
+void   get_time_code(gchar *szBuffer, int cchBufferMax, double dTime);
+
+void   waveview_init(struct TWaveView *me, class TFrame *pParentIn, GtkWidget *pParentBoxIn);
+void   waveview_destroy(struct TWaveView *me);
+
+double waveview_point_to_time(struct TWaveView *me, long lx);
+double waveview_sample_to_time(struct TWaveView *me, long li);
+long   waveview_time_to_sample(struct TWaveView *me, double dTime);
+long   waveview_time_to_point(struct TWaveView *me, double dTime);
+
+void   waveview_on_paint_canvas(struct TWaveView *me, GdkEventExpose *pEvent,
+				GtkWidget *pCanvas,
+				int iChannel);
+void     waveview_on_paint(struct TWaveView *me, GdkEventExpose *pEvent);
+void     waveview_repaint(struct TWaveView *me);
+gboolean waveview_on_mouse_move(struct TWaveView *me, GdkEventMotion *pEvent);
+gboolean waveview_on_mouse_button(struct TWaveView *me, GdkEventButton *pEvent);
+void     waveview_on_range_value(struct TWaveView *me, GtkRange *pScroller);
+
+gboolean waveview_can_zoom_out(struct TWaveView *me);
+gboolean waveview_can_zoom_in(struct TWaveView *me);
+void     waveview_zoom_in(struct TWaveView *me);
+void     waveview_zoom_out(struct TWaveView *me);
+void     waveview_zoom_reset(struct TWaveView *me, gboolean bRepaint);
+void     waveview_setup_scroller(struct TWaveView *me);
+  
+void     waveview_abort_recorder(struct TWaveView *me);
+void     waveview_close_recorder(struct TWaveView *me);
+void     waveview_start_play(struct TWaveView *me);
+void*    waveview_recorder_thread(struct TWaveView *me); /* must be public, called from wrapper */
+gboolean waveview_is_busy(struct TWaveView *me);
+  
 #endif
