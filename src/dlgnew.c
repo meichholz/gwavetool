@@ -8,8 +8,16 @@
 
 #include <stdarg.h>
 
-#define W(s) glade_xml_get_widget(me->pGlade,s)
+#define TB(s) GTK_TOGGLE_BUTTON(glade_xml_get_widget(me->pGlade,s))
 #define WCONNECT(f) glade_xml_signal_connect_data(me->pGlade,#f,G_CALLBACK(f),me)
+
+static void on_sps_toggled(GtkButton *p, struct TDlgNew *me)
+{
+  const gchar *sz;
+  sz=gtk_button_get_label(p);
+  fprintf(stderr,"PRESSED: %s\n",sz);
+}
+
 
 /* ======================================================================
  * Constructor stuff
@@ -33,7 +41,7 @@ struct TDlgNew *dlgnew_create(struct TFrame *pParent)
 
   me->pdlg=glade_xml_get_widget(me->pGlade, "dlg-new");
 
-  /* WCONNECT(dlgnew_on_new); */
+  WCONNECT(on_sps_toggled);
   return me;
 }
 
@@ -45,9 +53,28 @@ void dlgnew_destroy(struct TDlgNew *me)
 
 /* ====================================================================== */
 
+void dlgnew_set(struct TDlgNew *me, int cBitsIn, int cChannelsIn, int nSamplerateIn)
+{
+  me->cBits=cBitsIn;
+  me->cChannels=cChannelsIn;
+  me->nSamplerate=nSamplerateIn;
+}
+
+void dlgnew_get(struct TDlgNew *me, int *pcBitsOut, int *pcChannelsOut, int *pnSamplerateOut)
+{
+  *pcBitsOut=me->cBits;
+  *pcChannelsOut=me->cChannels;
+  *pnSamplerateOut=me->nSamplerate;
+}
+
 gint dlgnew_run(struct TDlgNew *me)
 {
+  gchar szName[20];
   /* gtk_widget_show(me->pdlg); */
+  snprintf(szName,sizeof(szName),"%dbit",me->cBits);
+  gtk_toggle_button_set_active(TB(szName),true);
+  snprintf(szName,sizeof(szName),"%dsps",me->nSamplerate);
+  gtk_toggle_button_set_active(TB(szName),true);
   gint rc=gtk_dialog_run(GTK_DIALOG(me->pdlg));
   return rc;
  }

@@ -132,11 +132,12 @@ void         frame_message_notimplemented(struct TFrame *me)
   gtk_widget_destroy(pdlg);
 }
 
-void frame_on_new(GtkMenuItem *pItem, struct TFrame *me)
+static void frame_on_new(GtkMenuItem *pItem, struct TFrame *me)
 {
   struct TDlgNew *dlg=dlgnew_create(me);
   if (dlg)
     {
+      dlgnew_set(dlg,8,2,44100);
       if (dlgnew_run(dlg)==GTK_RESPONSE_OK) /* true */
 	{
 	  fprintf(stderr,"DEBUG: TODO: do new buffer block\n");
