@@ -1,0 +1,10 @@
+Endless tings to to...
+
+- fcntl for output
+- ESD/OSS as option
+- Menu bar with icons
+- direct device output
+- recording
+- UI update in idle task (gtk_idle_add)
+- dialog factory
+

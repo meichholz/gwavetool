@@ -1,0 +1,55 @@
+#
+# Menu description in windoze style. Looks more familiar to me and allows
+# for another factory transscription.
+#
+
+#include "gwavetool.h"
+
+MENU amiMainMenu
+BEGIN
+  SUBMENU "_File"
+  BEGIN
+    MENUITEM ID_NEW "_New...", "<control>n"
+    MENUITEM ID_OPEN "_Open...", "<control>o"
+    MENUITEM SEPARATOR
+    MENUITEM ID_SAVE "_Save...", "<control>s"
+    MENUITEM ID_SAVEAS "Save _as..."
+    MENUITEM SEPARATOR
+    MENUITEM ID_QUIT "_Quit", "<control>q"
+    MENUITEM SEPARATOR
+    MENUITEM ID_LASTFILE1 "Lastfile _1", "<control>1"
+    MENUITEM ID_LASTFILE2 "Lastfile _2", "<control>2"
+    MENUITEM ID_LASTFILE3 "Lastfile _3", "<control>3"
+    MENUITEM ID_LASTFILE4 "Lastfile _4", "<control>4"
+    MENUITEM ID_LASTFILE5 "Lastfile _5", "<control>5"
+  END
+  SUBMENU "_Edit"
+  BEGIN
+    MENUITEM ID_EDIT_CUT "_Cut"
+    MENUITEM ID_EDIT_COPY "C_opy"
+    MENUITEM ID_EDIT_PASTE "_Paste"
+    MENUITEM SEPARATOR
+    MENUITEM ID_EDIT_SELECTALL "Select _all"
+    MENUITEM ID_EDIT_SELECTNOTHING "Select _nothing"
+  END
+  SUBMENU "_View"
+  BEGIN
+    MENUITEM ID_VIEW_RECORD "_Record"
+    MENUITEM ID_VIEW_PLAY   "_Play", "<control>p"
+    MENUITEM ID_VIEW_STOP   "_Stop"
+    MENUITEM SEPARATOR
+    MENUITEM ID_VIEW_ZOOMIN  "zoom _in", "<control>z"
+    MENUITEM ID_VIEW_ZOOMOUT "zoom _out", "<alt>z"
+    MENUITEM ID_VIEW_ZOOM0   "zoom _back"
+  END
+  SUBMENU "_Options"
+  BEGIN
+   MENUITEM ID_OPTIONS "_Preferences..."
+  END
+  SUBMENU "_Help" LASTMENU
+  BEGIN
+    MENUITEM ID_DEMO_INIT "_Create wave"
+    MENUITEM SEPARATOR
+    MENUITEM ID_ABOUT "_About..."
+  END
+END

@@ -1,0 +1,86 @@
+
+# Barebones Makefile
+# raw draft: 13.01.2003
+#
+# (C) Marian Eichholz
+#
+# See COPYING
+#
+
+VERSION = 0.0.6
+
+GTK_LIBS   = `pkg-config --libs gtk+-2.0` 
+GTK_CFLAGS = `pkg-config --cflags gtk+-2.0` 
+
+SF_LIBS    = -L/usr/lib -lsndfile
+SF_CFLAGS  = -I/usr/include
+
+ESD_LIBS   = `esd-config --libs`
+ESD_CFLAGS = `esd-config --cflags`
+
+THREAD_LIBS   = -lpthread `pkg-config --libs gthread-2.0` 
+THREAD_CFLAGS =`pkg-config --cflags gthread-2.0` 
+
+DEBUGIT = -g -DDEBUG
+
+CFLAGS     = -Wall -O2 $(DEBUGIT) -DVERSION=\"$(VERSION)\"
+LDFLAGS    = $(DEBUGIT)
+
+CC  = gcc
+CPP = g++
+
+NAME = gwavetool
+
+MODULES = menus.o waveview.o frame.o dlgabout.o toolbox.o main.o base.o app.o wave.o options.o statusbar.o
+
+HEADERS = menus.h gwavetool.h dlgabout.h toolbox.h main.h base.h app.h frame.h wave.h waveview.h options.h statusbar.h
+
+CCFILES = dlgabout.cc toolbox.cc main.cc base.cc app.cc frame.cc wave.cc waveview.cc
+
+BINARIES = $(NAME)
+
+CC_LIBS = -lstdc++
+
+.cc.o :
+	$(CPP) $(CFLAGS) $(GTK_CFLAGS) $(SF_CFLAGS) $(ESD_CFLAGS) $(THREAD_CFLAGS) -c $*.cc -o $*.o
+
+default: test
+
+$(NAME): $(MODULES)
+	echo "linking $<"
+	$(CC) $(LDFLAGS) -o $@ $(MODULES) $(CC_LIBS) $(GTK_LIBS) $(SF_LIBS) $(ESD_LIBS) $(THREAD_LIBS)
+
+menus.hc : menus.rc gwavetool.h
+	rcrc.pl menus.rc menus.hc
+
+menus.o : menus.hc
+
+edit:
+#	for i in $(WORKSET) ; do ( xemacs -geometry 83x38+20+10 -title "$$i" "$$i" & ) ; done
+	xemacs -geometry 83x40+20+0 $(HEADERS) &
+	xemacs -geometry 83x40+20+0 $(CCFILES) &
+
+test:	gwavetool
+	./gwavetool -geometry +0+0
+
+all:	$(BINARIES)
+
+$(MODULES) : $(HEADERS)
+
+new :	clean $(BINARIES)
+
+clean:
+	rm core t \#* *~ *.o *.hc $(MODULES) 2>/dev/null || true
+
+realclean: clean
+	rm $(BINARIES) 2>/dev/null || true
+
+tarball: clean
+	( cd ../.. ; tar cpsfz $(NAME).tar.gz -X $(NAME)/.notar $(NAME) )
+
+put: tarball
+	( cd ../.. ; scp -C $(NAME).tar.gz urmel.freenet-ag.de:src/ )
+
+get: tarball
+	( cd ../.. ; scp urmel.freenet-ag.de:src/$(NAME).tar.gz . )
+

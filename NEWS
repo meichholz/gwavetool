@@ -1,0 +1,23 @@
+New on 2003-04-03
+	* Recorder moved to TWaveView
+	* Threading with pthreads
+	* threadsafe play and spinlocking
+
+New on 2003-04-02
+	* Scrollbar used and connected
+	* automatic correct scaling
+
+New on 2003-04-01
+	* Canvases owned by 1 TWaveView
+	* PointToTime() / SampleToTime()
+	* Mouse-move and button-event-detection my TWaveView
+	* (TStatusBar from older revision)
+
+New on 2003-03-21
+	* First contact to ESD playback
+	* Resizing with minimum area
+	* MessageBox dialog support
+	* simple File load
+
+New on 2003-01-13
+	* nothing

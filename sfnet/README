@@ -1,0 +1,8 @@
+In Sourceforge, You have a "personal" server, i.w. home directory, on
+<project>.sf.net, shared for Your projects.
+
+Like - /home/users/e/ei/eichholz
+
+The webserver pages reside on - e.g. - /home/groups/g/gw/gwavetool/htdocs/
+
+You can make personal data like symlinks in Your home directory.
