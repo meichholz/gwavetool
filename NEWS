@@ -1,3 +1,6 @@
+New on 2003-11-26
+	* autoconf compliant (erm.. not really portable maybe)
+
 New on 2003-04-03
 	* Recorder moved to TWaveView
 	* Threading with pthreads
