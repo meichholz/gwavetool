@@ -4,7 +4,7 @@ test Makefile && make distclean
 
 rm aux/*
 
-for PAT in "*~" stamp-h.in Makefile Makefile.in configure "t.*" "tmp.*" "*.bak" ; do
+for PAT in aclocal.m4 "*~" stamp-h.in Makefile Makefile.in configure "t.*" "tmp.*" "*.bak" ; do
   find -name "$PAT" -exec rm "{}" \;
 done
 
@@ -12,8 +12,16 @@ rm t config.* configure.scan src/config.h 2>/dev/null
 
 test "$1" = "-c" && exit
 
+GNOME_PATHS=""
+
+for i in /opt/gnome2/share/aclocal
+do
+  test -d $i && GNOME_PATHS="-I $i $GNOME_PATHS"
+done
+
+
 autoscan
-aclocal -I /opt/gnome2/share/aclocal
+aclocal $GNOME_PATHS
 autoconf
 autoheader
 automake --add-missing --copy --include-deps --foreign
