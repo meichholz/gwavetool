@@ -30,6 +30,8 @@ typedef enum { rcOk=0, rcNomem=1, rcIO=2, rcBounds=3, rcUnknown=-1 } TResult ;
 #define DEBUG_WAVEVIEW  4
 #define DEBUG_RECORDER  5
 
+#define SETZERO(me)  memset(me,0,sizeof(*me))
+
 void debug_printf(int debug_class,const char *szFormat, ...);
 
 #endif

@@ -2,18 +2,16 @@
 #define H_DIALOG_ABOUT
 
 #include "base.h"
+#include "app.h"
 
-class TAboutDialog : public TBase {
-
- protected:
-  GtkDialog *pdlg;
-  
- public:
-  /* constructors */
-           TAboutDialog(class TApp *papp);
-  virtual ~TAboutDialog();
-  virtual  gint DoModal(gint idDefault=-1);
+struct TAboutDialog {
+  GtkDialog   *pdlg;
+  struct TApp *papp;
 };
+
+void aboutdialog_init(struct TAboutDialog *me, struct TApp *papp);
+void aboutdialog_destroy(struct TAboutDialog *me);
+gint aboutdialog_do_modal(struct TAboutDialog *me);
 
 #endif
 

@@ -22,16 +22,15 @@ void app_init(struct TApp *me,int argc, char *argv[])
   g_thread_init(NULL);
   gdk_threads_init();
   gtk_init(&argc,&argv);
-  
   me->pWave = new TWave(me);
-  me->pFrame= new TFrame(me);
+  me->pFrame= (struct TFrame *)malloc(sizeof(TFrame)); frame_init(me->pFrame,me);
   me->pOptions= new TOptions(me);
 }
 
 void app_destroy(struct TApp *me)
 {
   debug_printf(DEBUG_FRAMEWORK,"deleting pFrame.");
-  delete me->pFrame;
+  frame_destroy(me->pFrame); free(me->pFrame);
   debug_printf(DEBUG_FRAMEWORK,"deleting pWave.");
   delete me->pWave;
   debug_printf(DEBUG_FRAMEWORK,"deleting pOptions.");
@@ -57,13 +56,13 @@ static gboolean _idle_proc(void *obj)
 
 void app_idle_task(struct TApp *me)
 {
-  me->pFrame->IdleTask();
+  frame_idle_task(me->pFrame);
 }
 
 TResult app_run(struct TApp *me)
 {
   me->bActive=true;
-  me->pFrame->SyncState();
+  frame_sync_state(me->pFrame);
   gdk_threads_enter();
   int idIdle=gtk_idle_add(_idle_proc,me);
   gtk_main();

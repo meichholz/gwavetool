@@ -7,15 +7,12 @@
 
 #define FRAME_LRU_NUM 5
 
-class TFrame : public TBase {
+struct TFrame {
 
- public:
-
+  struct TApp      *pApp;
   class TWaveView  *pWaveView;
   class TStatusBar *pStatusBar;
-  class TMenu      *pMainMenu;
 
- private:
   GtkItemFactory *pmif;
   GtkAccelGroup  *pag;
   GtkWidget      *pwndTop;
@@ -26,40 +23,37 @@ class TFrame : public TBase {
 
   GString        *pstrLastFile,*apstrLRU[FRAME_LRU_NUM];
   GtkWidget      *aMenuLRU[FRAME_LRU_NUM];
-
-  /* menu handlers */
-  void         OnMenuLoad(void);
-  void         OnMenuSave(void);
-  void         OnMenuSaveAs(void);
-  void         OnMenuNew(void);
-
- public:
-  /* constructors */
-           TFrame(class TApp *papp);
-  virtual ~TFrame();
-
-  /* event handlers */
-  virtual void     Repaint(void);
-  virtual void     OnDelete(GdkEventAny *pev);
-  virtual gboolean OnMenu(guint idMenu);
- 
-  TResult      ActivateLRU(int iLRUfile);
-
-  GtkWindow*   Window(void) { return GTK_WINDOW(pwndTop); };
-
-  // Helpers for message boxes
-  gint         MessageBox(GtkMessageType idType, GtkButtonsType idButtons,
-			  const char *szContent, ...);
-  void         MessageError(const char *szContent, ...);
-  gboolean     MessageConfirm(const char *szContent, ...);
-  void         MessageNotimplemented(void);
-
-  void         SyncState(void);
-  
-  const gchar  *GetLastFilename(void);
-  void         SetLastFilename(const gchar *szFile);
-  void         SetBusyCursor(gboolean bBusy);
-  void         IdleTask(void);
 };
+
+void         frame_on_menu_load(struct TFrame *me);
+void         frame_on_menu_save(struct TFrame *me);
+void         frame_on_menu_save_as(struct TFrame *me);
+void         frame_on_menu_new(struct TFrame *me);
+void         frame_init(struct TFrame *me, struct TApp *papp);
+void         frame_destroy(struct TFrame *me);
+
+/* event handlers */
+void     frame_repaint(struct TFrame *me);
+void     frame_on_delete(struct TFrame *me, GdkEventAny *pev);
+gboolean frame_on_menu(struct TFrame *me, guint idMenu);
+TResult          frame_activate_LRU(struct TFrame *me, int iLRUfile);
+
+GtkWindow*   frame_window(struct TFrame *me);
+
+/* Helpers for message boxes */
+gint         frame_message_box(struct TFrame *me,
+			       GtkMessageType idType,
+			       GtkButtonsType idButtons,
+			       const char *szContent, ...);
+void         frame_message_error(struct TFrame *me, const char *szContent, ...);
+gboolean     frame_message_confirm(struct TFrame *me, const char *szContent, ...);
+void         frame_message_notimplemented(struct TFrame *me);
+
+void         frame_sync_state(struct TFrame *me);
+  
+const gchar  *frame_get_last_filename(struct TFrame *me);
+void         frame_set_last_filename(struct TFrame *me, const gchar *szFile);
+void         frame_set_busy_cursor(struct TFrame *me, gboolean bBusy);
+void         frame_idle_task(struct TFrame *me);
 
 #endif

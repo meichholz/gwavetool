@@ -6,17 +6,18 @@
 #include "app.h"
 #include "frame.h"
 
-gint TAboutDialog::DoModal(gint idDefault)
+gint aboutdialog_do_modal(struct TAboutDialog *me)
 {
-  gint rc=gtk_dialog_run(pdlg);
+  gint rc=gtk_dialog_run(me->pdlg);
   if (rc==GTK_RESPONSE_ACCEPT) return TRUE;
   return FALSE;
 }
 
-TAboutDialog::TAboutDialog(class TApp *papp) : TBase(papp)
+void aboutdialog_init(struct TAboutDialog *me, struct TApp *papp)
 {
-  pdlg=GTK_DIALOG(gtk_dialog_new_with_buttons("About GWaveTool",
-				   pApp->pFrame->Window(),
+  me->papp=papp;
+  me->pdlg=GTK_DIALOG(gtk_dialog_new_with_buttons("About GWaveTool",
+				   frame_window(papp->pFrame),
 				   GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
 				   GTK_STOCK_OK,
 				   GTK_RESPONSE_ACCEPT,
@@ -26,11 +27,10 @@ TAboutDialog::TAboutDialog(class TApp *papp) : TBase(papp)
   g_free(buf);
   gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_CENTER);
   gtk_widget_show(label);
-  gtk_container_add(GTK_CONTAINER(pdlg->vbox),label);
-
+  gtk_container_add(GTK_CONTAINER(me->pdlg->vbox),label);
 }
 
-TAboutDialog::~TAboutDialog()
+void aboutdialog_destroy(struct TAboutDialog *me)
 {
-  gtk_widget_destroy(GTK_WIDGET(pdlg));
+  gtk_widget_destroy(GTK_WIDGET(me->pdlg));
 }

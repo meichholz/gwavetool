@@ -109,7 +109,7 @@ TWave::TWave(class TApp *papp, const gchar *szFile) : TBase(papp)
   long lcTotalSamples=lcSamples*cChannels;
   pSamples=new short[lcTotalSamples];
   if (!pSamples) {
-    pApp->pFrame->MessageError("not enough virtual memory");
+    frame_message_error(pApp->pFrame,"not enough virtual memory");
     lcSamples=0;
     return;
   }

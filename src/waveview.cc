@@ -375,7 +375,7 @@ void *TWaveView::RecorderThread(void)
       // TODO: Panic()
     }
   gdk_threads_enter();
-  pFrame->SyncState();
+  frame_sync_state(this->pFrame);
   gdk_threads_leave();
   long liStart=TimeToSample(WAVEVIEW_TIME_LEFT)/WAVE_FRAME_SAMPLES;
   long liEnd=TimeToSample(WAVEVIEW_TIME_RIGHT)/WAVE_FRAME_SAMPLES;
@@ -420,7 +420,7 @@ void *TWaveView::RecorderThread(void)
   stateRecorder=idle;
   gdk_threads_enter();
   pStatusBar->SetPercentage(0.0);
-  pFrame->SyncState();
+  frame_sync_state(this->pFrame);
   gdk_threads_leave();
   // THREAD EXIT
   pthread_exit(NULL);
@@ -439,7 +439,7 @@ void TWaveView::StartPlay(void)
   idOutputDevice=esd_audio_open();
   if (!idOutputDevice)
     {
-      pFrame->MessageError("Cannot contact ESD");
+      frame_message_error(this->pFrame,"Cannot contact ESD");
       return;
     }
 #endif
@@ -447,7 +447,7 @@ void TWaveView::StartPlay(void)
   idOutputDevice=open("/dev/dsp",O_WRONLY);
   if (!idOutputDevice)
     {
-      pFrame->MessageError("Cannot contact DSP device");
+      frame_message_error(this->pFrame,"Cannot contact DSP device");
       return;
     }
 #endif
@@ -458,7 +458,7 @@ void TWaveView::StartPlay(void)
     {
       CloseRecorder();
       stateRecorder=idle;
-      pFrame->MessageError("Cannot create recorder thread");
+      frame_message_error(this->pFrame,"Cannot create recorder thread");
       return;
     }
   else
@@ -470,7 +470,7 @@ void TWaveView::StartPlay(void)
 
 TWaveView::TWaveView(class TFrame *pParent, GtkWidget *pParentBox) : TBase(pParent->pApp)
 {
-  pFrame=pParent;
+  this->pFrame=pParent;
   pCanvasLeft=gtk_drawing_area_new();
   pCanvasRight=gtk_drawing_area_new();
   // TODO: entfällt: pSeparator=gtk_hseparator_new();
@@ -503,11 +503,11 @@ TWaveView::TWaveView(class TFrame *pParent, GtkWidget *pParentBox) : TBase(pPare
   GdkGeometry gg;
   memset(&gg,0,sizeof(gg));
   gg.min_width=10; gg.min_height=10;
-  gtk_window_set_geometry_hints (GTK_WINDOW(pParent->Window()),
+  gtk_window_set_geometry_hints (frame_window(pParent),
 				 pCanvasLeft,
 				 &gg,
 				 GdkWindowHints(GDK_HINT_MIN_SIZE));
-  gtk_window_set_geometry_hints (GTK_WINDOW(pParent->Window()),
+  gtk_window_set_geometry_hints (frame_window(pParent),
 				 pCanvasRight,
 				 &gg,
 				 GdkWindowHints(GDK_HINT_MIN_SIZE));
