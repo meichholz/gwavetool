@@ -156,7 +156,7 @@ void     waveview_setup_scroller(struct TWaveView *me)
   double dFrame=dMax-dMin;
   double dTotalTime=waveview_sample_to_time(me,wave_get_sample_count(me->pApp->pWave));
 
-  // enshure full page in nonvalid waveforms, just cosmetic...
+  // ensure full page in nonvalid waveforms, just cosmetic...
   if (dFrame<=WAVEVIEW_MIN_INTERVAL) dFrame=WAVEVIEW_MIN_INTERVAL;
   if (dTotalTime<=WAVEVIEW_MIN_INTERVAL) dTotalTime=WAVEVIEW_MIN_INTERVAL;
   pad=gtk_adjustment_new(dMin,

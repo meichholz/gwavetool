@@ -4,7 +4,7 @@ AC_INIT(src/main.c)
 AC_PREREQ(2.57)
 AC_CONFIG_AUX_DIR(aux)
 AM_INIT_AUTOMAKE(gwavetool,0.0.9)
-AC_REVISION($Revision: 1.5 $)
+AC_REVISION($Revision: 1.6 $)
 AC_PROG_CC
 dnl <<y=yScale+cyWave*pWave->PeekSample(iChannel,li)/MAXSHORT;>> demands for this:
 AC_PROG_GCC_TRADITIONAL
@@ -32,12 +32,13 @@ AC_CHECK_HEADERS(pthread.h,[],AC_MSG_ERROR(need pthread.h))
 AC_CHECK_LIB(pthread,pthread_detach,LIBS="-lpthread $LIBS",AC_MSG_ERROR(need pthread library))
 
 
-PKG_CHECK_MODULES(GLADE, libglade-2.0 libgnomeui-2.0 >= 1.110.0)
+dnl PKG_CHECK_MODULES(GLADE, libglade-2.0 libgnomeui-2.0 >= 1.110.0)
+PKG_CHECK_MODULES(GLADE, libglade-2.0)
 AC_SUBST(GLADE_CFLAGS)
 AC_SUBST(GLADE_LIBS)
 
 dnl AM_PATH_GLIB_2_0(2.0.0, gaveglib=yes,AC_MSG_ERROR(need gthread-2.0),gthread)
-AM_PATH_GTK_2_0(2.0.0, havegtk=yes, AC_MSG_ERROR(need gtk-2.0),gthread)
+dnl AM_PATH_GTK_2_0(2.0.0, havegtk=yes, AC_MSG_ERROR(need gtk-2.0),gthread)
 
 AC_CHECK_PROG(acme_have_podman,pod2man,yes)
 AM_CONDITIONAL(HAVE_POD2MAN,test x$acme_have_podman = xyes)

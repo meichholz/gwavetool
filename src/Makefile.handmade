@@ -7,10 +7,13 @@
 # See COPYING
 #
 
-VERSION = 0.0.8
+VERSION = 0.0.9a
 
 GTK_LIBS   = `pkg-config --libs gtk+-2.0` 
 GTK_CFLAGS = `pkg-config --cflags gtk+-2.0` 
+
+GLADE_LIBS   = `pkg-config --libs libglade-2.0`
+GLADE_CFLAGS = `pkg-config --cflags libglade-2.0` 
 
 SF_LIBS    = -L/usr/lib -lsndfile
 SF_CFLAGS  = -I/usr/include
@@ -21,9 +24,10 @@ ESD_CFLAGS = `esd-config --cflags`
 THREAD_LIBS   = -lpthread `pkg-config --libs gthread-2.0` 
 THREAD_CFLAGS =`pkg-config --cflags gthread-2.0` 
 
+# DEBUGIT = -O2
 DEBUGIT = -g -DDEBUG
 
-CFLAGS     = -Wall -O2 $(DEBUGIT) -DVERSION=\"$(VERSION)\"
+CFLAGS     = -Wall $(DEBUGIT) -DVERSION=\"$(VERSION)\"
 LDFLAGS    = $(DEBUGIT)
 
 CC  = gcc
@@ -42,13 +46,13 @@ BINARIES = $(NAME)
 # CC_LIBS = -lstdc++
 
 .c.o :
-	$(CPP) $(CFLAGS) $(GTK_CFLAGS) $(SF_CFLAGS) $(ESD_CFLAGS) $(THREAD_CFLAGS) -c $*.c -o $*.o
+	$(CPP) $(CFLAGS) $(GLADE_CFLAGS) $(SF_CFLAGS) $(ESD_CFLAGS) $(THREAD_CFLAGS) -c $*.c -o $*.o
 
 default: test
 
 $(NAME): $(MODULES)
 	echo "linking $<"
-	$(CC) $(LDFLAGS) -o $@ $(MODULES) $(CC_LIBS) $(GTK_LIBS) $(SF_LIBS) $(ESD_LIBS) $(THREAD_LIBS)
+	$(CC) $(LDFLAGS) -o $@ $(MODULES) $(CC_LIBS) $(GLADE_LIBS) $(SF_LIBS) $(ESD_LIBS) $(THREAD_LIBS)
 
 edit:
 #	for i in $(WORKSET) ; do ( xemacs -geometry 83x38+20+10 -title "$$i" "$$i" & ) ; done

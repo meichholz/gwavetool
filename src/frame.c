@@ -13,6 +13,11 @@
 
 #define USE_GLADE 1
 
+#include <glade/glade-build.h>
+
+#define W(s) glade_xml_get_widget(me->pGlade,s)
+#define WCONNECT(f) glade_xml_signal_connect_data(me->pGlade,#f,G_CALLBACK(f),me)
+
 /* utility */
 
 GtkWindow*   frame_window(struct TFrame *me)
@@ -128,7 +133,7 @@ void         frame_message_notimplemented(struct TFrame *me)
   gtk_widget_destroy(pdlg);
 }
 
-void frame_on_menu_new(struct TFrame *me)
+void frame_on_new(GtkMenuItem *pItem, struct TFrame *me)
 {
      frame_message_notimplemented(me);
 }
@@ -144,7 +149,7 @@ void         frame_set_busy_cursor(struct TFrame *me, gboolean bBusy)
    app_poll_queue(me->pApp);
 }
 
-void         frame_on_menu_load(struct TFrame *me)
+void frame_on_load(GtkMenuItem *pItem, struct TFrame *me)
 {
   GtkFileSelection *psel;
   GtkWidget *pdlg;
@@ -196,11 +201,23 @@ TResult frame_activate_LRU(struct TFrame *me, int iLRUfile)
   return bOk ? rcOk : rcIO;
 }
 
+void frame_on_lastfile(GtkMenuItem *pItem, struct TFrame *me)
+{
+  int i;
+  const gchar *szName=gtk_widget_get_name(GTK_WIDGET(pItem));
+  fprintf(stderr,"DEBUG:reactivating %s\n",szName);
+  i=szName[8]-'0';
+  if (i>=1 && i<=5)
+    frame_activate_LRU(me,i-1);
+  else
+    fprintf(stderr,"TODO: FATAL: lastfile out of range\n");
+}
+
 /* ======================================================================
- * Menu callbacks
+ * Quit: Leave everything behind
  * ====================================================================== */
 
-static void frame_cb_on_quit_activate(GtkMenuItem *pItem, struct TFrame *me)
+static void frame_do_quit(struct TFrame *me)
 {
   if (app_can_close(me->pApp) || 
       frame_message_confirm(me,
@@ -208,150 +225,89 @@ static void frame_cb_on_quit_activate(GtkMenuItem *pItem, struct TFrame *me)
     gtk_main_quit();
 }
 
-#ifdef GENERAL_CALLBACK
-static void frame_menu_cb(GtkMenuItem *pItem, gpointer user_data)
-{
-  fprintf(stderr,"activation of %s\n",gtk_widget_get_name(GTK_WIDGET(pItem)));
-}
-
-static void frame_glade_connect_cb(const gchar *handler_name,
-			  GObject *object,
-			  const gchar *signal_name,
-			  const gchar *signal_data,
-			  GObject *connect_object,
-			  gboolean after,
-			  gpointer user_data)
-{
-  if (!strcmp(signal_name,"activate"))
-    g_signal_connect(object,signal_name,frame_menu_cb,user_data);
-  fprintf(stderr,"set request signal %s on %s\n",
-	  signal_name, handler_name);
-}
-#endif
-
 /* ======================================================================
- * other menu stuff
+ * Menu callbacks
  * ====================================================================== */
 
-void frame_on_menu_save(struct TFrame *me)
+static void frame_on_quit(GtkMenuItem *pItem, struct TFrame *me)
+{
+  frame_do_quit(me);
+}
+
+static void frame_on_save(GtkMenuItem *pItem, struct TFrame *me)
 {
      frame_message_notimplemented(me);
 }
 
-void frame_on_menu_save_as(struct TFrame *me)
+static void frame_on_save_as(GtkMenuItem *pItem, struct TFrame *me)
 {
      frame_message_notimplemented(me);
 }
 
-gboolean frame_on_menu(struct TFrame *me, guint id)
+static void frame_on_demo_init(GtkMenuItem *pItem, struct TFrame *me)
 {
-  switch (id)
-    {
-      /* file menu */
-    case ID_NEW:    frame_on_menu_new(me); break;
-    case ID_OPEN:   frame_on_menu_load(me); break;
-    case ID_SAVE:   frame_on_menu_save(me); break;
-    case ID_SAVEAS: frame_on_menu_save_as(me); break;
-    case ID_QUIT:
-      /* TODO: depends on the state (aka CanClose()) */
-      if (app_can_close(me->pApp) || 
-	  frame_message_confirm(me,
-				"Thus this great application *really* be shut down, my dear?"))
-	gtk_main_quit();
-      break;
-      /* demo menu */
-    case ID_DEMO_INIT:
-      wave_create_samples(me->pApp->pWave);
-      waveview_zoom_reset(me->pWaveView,true);
-      frame_repaint(me);
-      break;
-      /* Help Menu */
-    case ID_VIEW_STOP:     waveview_abort_recorder(me->pWaveView); break;
-    case ID_VIEW_PLAY:     waveview_start_play(me->pWaveView); return true; /* no repaint! */
-    case ID_VIEW_RECORD:   frame_message_notimplemented(me); break;
-    case ID_VIEW_ZOOMIN:   waveview_zoom_in(me->pWaveView); break;
-    case ID_VIEW_ZOOMOUT:  waveview_zoom_out(me->pWaveView); break;
-    case ID_VIEW_ZOOM0:    waveview_zoom_reset(me->pWaveView,true); break;
-    case ID_LASTFILE1:
-    case ID_LASTFILE2:
-    case ID_LASTFILE3:
-    case ID_LASTFILE4:
-    case ID_LASTFILE5:
-      frame_activate_LRU(me,id-ID_LASTFILE1);
-      break;
-    case ID_ABOUT:
-      { struct TAboutDialog dlg;
-        aboutdialog_init(&dlg,me->pApp);
-        aboutdialog_do_modal(&dlg);
-	aboutdialog_destroy(&dlg);
-      }
-      break;
-    default:
-      frame_message_notimplemented(me);
-    }
+  wave_create_samples(me->pApp->pWave);
+  waveview_zoom_reset(me->pWaveView,true);
+  frame_repaint(me);
+}
+
+static void frame_on_record(GtkMenuItem *pItem, struct TFrame *me)
+{
+  frame_message_notimplemented(me); 
+}
+
+static void frame_on_play(GtkMenuItem *pItem, struct TFrame *me)
+{
+  waveview_start_play(me->pWaveView); 
   frame_sync_state(me);
-  return true; /* no further processing required */
+}
+
+static void frame_on_stop(GtkMenuItem *pItem, struct TFrame *me)
+{
+  waveview_abort_recorder(me->pWaveView); 
+  frame_sync_state(me);
+}
+
+static void frame_on_zoomin(GtkMenuItem *pItem, struct TFrame *me)
+{
+  waveview_zoom_in(me->pWaveView); 
+  frame_sync_state(me);
+}
+
+static void frame_on_zoomout(GtkMenuItem *pItem, struct TFrame *me)
+{
+  waveview_zoom_out(me->pWaveView); 
+  frame_sync_state(me);
+}
+
+static void frame_on_zoom0(GtkMenuItem *pItem, struct TFrame *me)
+{
+  waveview_zoom_reset(me->pWaveView,true); 
+  frame_sync_state(me);
+}
+
+static void frame_on_about(GtkMenuItem *pItem, struct TFrame *me)
+{
+  struct TAboutDialog dlg;
+  aboutdialog_init(&dlg,me->pApp);
+  aboutdialog_do_modal(&dlg);
+  aboutdialog_destroy(&dlg);
+}
+
+static void frame_on_preferences(GtkMenuItem *pItem, struct TFrame *me)
+{
+  frame_message_notimplemented(me); 
 }
 
 void frame_on_delete(struct TFrame *me, GdkEventAny *pev)
 {
   me->bDead=true;
-  frame_on_menu(me,ID_QUIT);
+  frame_do_quit(me);
 }
 
 // ======================================================================
 // Constructor stuff
 // ======================================================================
-
-#define BRANCH "<Branch>"
-#define SEPARATOR "<Separator>"
-
-static void procLocalMenu(struct TFrame *p,guint uID, GtkWidget *pMenu)
-{
-  frame_on_menu(p,uID);
-}
-
-#define ITEMCB(p) ((GtkItemFactoryCallback)(p))
-
-
-static GtkItemFactoryEntry menuTemplate[] = {
-  {"/_File",NULL,NULL,0,BRANCH},
-    {"/File/_New...","<control>n",ITEMCB(procLocalMenu),ID_NEW,NULL},
-    {"/File/_Open...","<control>o",ITEMCB(procLocalMenu),ID_OPEN,NULL},
-    {"/File/-",NULL,NULL,0,SEPARATOR},
-    {"/File/_Save","<control>s",ITEMCB(procLocalMenu),ID_SAVE,NULL},
-    {"/File/_Save as...","<control>s",ITEMCB(procLocalMenu),ID_SAVEAS,NULL},
-    {"/File/-",NULL,NULL,0,SEPARATOR},
-    {"/File/_Quit","<control>q",ITEMCB(procLocalMenu),ID_QUIT,NULL},
-    {"/File/-",NULL,NULL,0,SEPARATOR},
-    {"/File/Lastfile1","<control>1",ITEMCB(procLocalMenu),ID_LASTFILE1,NULL},
-    {"/File/Lastfile2","<control>2",ITEMCB(procLocalMenu),ID_LASTFILE2,NULL},
-    {"/File/Lastfile3","<control>3",ITEMCB(procLocalMenu),ID_LASTFILE3,NULL},
-    {"/File/Lastfile4","<control>4",ITEMCB(procLocalMenu),ID_LASTFILE4,NULL},
-    {"/File/Lastfile5","<control>5",ITEMCB(procLocalMenu),ID_LASTFILE5,NULL},
-
-  {"/_Edit",NULL,NULL,0,BRANCH},
-    {"/Edit/_Cut",NULL,ITEMCB(procLocalMenu),ID_EDIT_CUT,NULL},
-    {"/Edit/C_opy",NULL,ITEMCB(procLocalMenu),ID_EDIT_COPY,NULL},
-    {"/Edit/_Paste",NULL,ITEMCB(procLocalMenu),ID_EDIT_PASTE,NULL},
-    {"/Edit/-",NULL,NULL,0,SEPARATOR},
-    {"/Edit/Select _all",NULL,ITEMCB(procLocalMenu),ID_EDIT_SELECTALL,NULL},
-    {"/Edit/Select _nothing",NULL,ITEMCB(procLocalMenu),ID_EDIT_SELECTNOTHING,NULL},
-  {"/_View",NULL,NULL,0,BRANCH},
-    {"/View/_Record",NULL,ITEMCB(procLocalMenu),ID_VIEW_RECORD,NULL},
-    {"/View/_Play","<control>p",ITEMCB(procLocalMenu),ID_VIEW_PLAY,NULL},
-    {"/View/_Stop",NULL,ITEMCB(procLocalMenu),ID_VIEW_STOP,NULL},
-    {"/View/-1",NULL,NULL,0,SEPARATOR},
-    {"/View/Zoom _in","<control>z",ITEMCB(procLocalMenu),ID_VIEW_ZOOMIN,NULL},
-    {"/View/Zoom _out","<alt>z",ITEMCB(procLocalMenu),ID_VIEW_ZOOMOUT,NULL},
-    {"/View/Zoom _back totally",NULL,ITEMCB(procLocalMenu),ID_VIEW_ZOOM0,NULL},
-  {"/_Options",NULL,NULL,0,BRANCH},
-    {"/Options/_Preferences...",NULL,ITEMCB(procLocalMenu),ID_OPTIONS,NULL},
-  {"/_Help",NULL,NULL,0,"<LastBranch>"},
-    {"/Help/_Create Demo Waveform","<control>d",ITEMCB(procLocalMenu),ID_DEMO_INIT,NULL},
-    {"/Help/-",NULL,NULL,0,SEPARATOR},
-    {"/Help/_About...",NULL,ITEMCB(procLocalMenu),ID_ABOUT,NULL},
-  };
 
 /* NOTE: all callbacks have now to be LOCAL since we have no longer virtual stuff at hand!!! */
 
@@ -374,15 +330,25 @@ void frame_init(struct TFrame *me, struct TApp *papp)
       /* TODO: Fatal exception equivalent */
       fprintf(stderr,"FATAL:frame_init: cannot construct GLADE\n");
     }
-  me->pmenuGlade=glade_xml_get_widget(me->pGlade, "menubar");
-  glade_xml_signal_connect_data(me->pGlade,"frame_cb_on_quit_activate",G_CALLBACK(frame_cb_on_quit_activate),me);
 
-  me->pag = gtk_accel_group_new();
-  me->pmif = gtk_item_factory_new(GTK_TYPE_MENU_BAR,"<main>",me->pag);
-  gint cItems = sizeof(menuTemplate)/sizeof(menuTemplate[0]);
-  gtk_item_factory_create_items(me->pmif,cItems,menuTemplate,me);
-  gtk_window_add_accel_group(GTK_WINDOW(me->pwndTop),me->pag);
-  me->pMenu=gtk_item_factory_get_widget(me->pmif,"<main>");
+  me->pmenu=glade_xml_get_widget(me->pGlade, "menubar");
+
+  WCONNECT(frame_on_new);
+  WCONNECT(frame_on_load);
+  WCONNECT(frame_on_save);
+  WCONNECT(frame_on_save_as);
+  WCONNECT(frame_on_new);
+  WCONNECT(frame_on_quit);
+  WCONNECT(frame_on_lastfile);
+  WCONNECT(frame_on_play);
+  WCONNECT(frame_on_record);
+  WCONNECT(frame_on_stop);
+  WCONNECT(frame_on_zoomin);
+  WCONNECT(frame_on_zoomout);
+  WCONNECT(frame_on_zoom0);
+  WCONNECT(frame_on_preferences);
+  WCONNECT(frame_on_about);
+  WCONNECT(frame_on_demo_init);
 
   for (i=0; i<FRAME_LRU_NUM; i++)
     {
@@ -397,13 +363,8 @@ void frame_init(struct TFrame *me, struct TApp *papp)
   for (i=0; i<FRAME_LRU_NUM; i++)
     {
       char szPath[100];
-#ifdef USE_GLADE
       sprintf(szPath,"lastfile%d",i+1);
       me->aMenuLRU[i]=glade_xml_get_widget(me->pGlade,szPath);
-#else
-      sprintf(szPath,"/File/Lastfile%d",i+1);
-      me->aMenuLRU[i]=gtk_item_factory_get_item(me->pmif,szPath);
-#endif
     }
   for (i=0; i<FRAME_LRU_NUM; i++)
     {
@@ -414,9 +375,7 @@ void frame_init(struct TFrame *me, struct TApp *papp)
   me->pVbox=gtk_vbox_new(FALSE,FALSE);
 
   gtk_container_add(GTK_CONTAINER(me->pwndTop),me->pVbox);
-  gtk_box_pack_start(GTK_BOX(me->pVbox),me->pMenu,FALSE,FALSE,0);
-  gtk_box_pack_start(GTK_BOX(me->pVbox),me->pmenuGlade,FALSE,FALSE,0);
-  gtk_widget_show(me->pMenu);
+  gtk_box_pack_start(GTK_BOX(me->pVbox),me->pmenu,FALSE,FALSE,0);
 
   me->pWaveView  = (struct TWaveView*) malloc(sizeof(struct TWaveView));
   me->pStatusBar = (struct TStatusBar*)malloc(sizeof(struct TStatusBar));
@@ -436,6 +395,10 @@ void frame_init(struct TFrame *me, struct TApp *papp)
   gtk_widget_show(me->pwndTop);
   /* gdk_window_move(me->pwndTop->window,10,40); */
 
+  /* omitting this accelerator magic leaves the CTRL-* keys unused */
+  me->pag=glade_xml_ensure_accel(me->pGlade);
+  gtk_window_add_accel_group(GTK_WINDOW(me->pwndTop),me->pag);
+
   me->bDead=false;
 }
 
@@ -447,7 +410,7 @@ void frame_destroy(struct TFrame *me)
   me->bDead=true;
   waveview_destroy(me->pWaveView); free(me->pWaveView);
   statusbar_destroy(me->pStatusBar); free(me->pStatusBar);
-  g_object_unref(me->pmif);
+  g_object_unref(me->pGlade);
   g_string_free(me->pstrLastFile,true);
   for (i=0; i<FRAME_LRU_NUM; i++)
     g_string_free(me->apstrLRU[i],true);
@@ -484,24 +447,13 @@ void frame_sync_state(struct TFrame *me)
   /*
    * Now rearrange the menu tree according to the new state
    */
-
-#ifdef USE_GLADE
-  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"save"),bHaveFile);
-  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"saveas"),bHaveFile);
-  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"zoomin"),bHaveFile && waveview_can_zoom_in(me->pWaveView));
-  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"zoomout"),bHaveFile && waveview_can_zoom_out(me->pWaveView));
-  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"play"),bHaveFile && waveview_is_busy(me->pWaveView));
-  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"record"),bHaveFile && waveview_is_busy(me->pWaveView));
-  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"stop"),bHaveFile && !waveview_is_busy(me->pWaveView));
-#else
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/File/Save"),bHaveFile);
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/File/Save as..."),bHaveFile);
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Zoom in"),bHaveFile && waveview_can_zoom_in(me->pWaveView));
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Zoom out"),bHaveFile && waveview_can_zoom_out(me->pWaveView));
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Play"),bHaveFile && waveview_is_busy(me->pWaveView));
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Record"),bHaveFile && waveview_is_busy(me->pWaveView));
-  gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Stop"),bHaveFile && !waveview_is_busy(me->pWaveView));
-#endif
+  gtk_widget_set_sensitive(W("save"),bHaveFile);
+  gtk_widget_set_sensitive(W("saveas"),bHaveFile);
+  gtk_widget_set_sensitive(W("zoomin"),bHaveFile && waveview_can_zoom_in(me->pWaveView));
+  gtk_widget_set_sensitive(W("zoomout"),bHaveFile && waveview_can_zoom_out(me->pWaveView));
+  gtk_widget_set_sensitive(W("play"),bHaveFile && waveview_is_busy(me->pWaveView));
+  gtk_widget_set_sensitive(W("record"),bHaveFile && waveview_is_busy(me->pWaveView));
+  gtk_widget_set_sensitive(W("stop"),bHaveFile && !waveview_is_busy(me->pWaveView));
 }
 
 /* ======================================================================

@@ -13,12 +13,10 @@ struct TFrame {
   struct TWaveView  *pWaveView;
   struct TStatusBar *pStatusBar;
 
-  GtkItemFactory *pmif;
-  GtkAccelGroup  *pag;
   GtkWidget      *pwndTop;
-  GtkWidget      *pMenu;
-  GtkWidget      *pmenuGlade;
   GtkWidget      *pVbox;
+  GtkWidget      *pmenu;
+  GtkAccelGroup  *pag;
 
   gboolean        bDead;
   GladeXML       *pGlade;
