@@ -11,6 +11,7 @@
 #include <pthread.h>
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 
 extern const char szAppTitle[];
 extern const char szAppName[];

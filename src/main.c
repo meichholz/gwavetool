@@ -1,6 +1,6 @@
 /* ======================================================================
 
-main.cc
+main.c
 
 Startup code and everything.
 
@@ -14,7 +14,7 @@ See file COPYING for details.
 #include "main.h"
 #include "app.h"
 
-const char szAppTitle[]="GTK Wave Tool";
+const char szAppTitle[]="GTK+ Wave Tool";
 const char szAppName[]="gwavetool";
 
 const char szVersion[]=VERSION;
@@ -37,7 +37,6 @@ void debug_printf(int debug_class,const char *szFormat, ...)
 
 int main(int argc, char *argv[])
 {
-
   struct TApp app;
   app_init(&app,argc,argv);
   app_run(&app);

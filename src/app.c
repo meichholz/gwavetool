@@ -19,6 +19,7 @@ void app_init(struct TApp *me,int argc, char *argv[])
   gtk_init(&argc,&argv);
   me->pWave = wave_new(me);
   me->pFrame= (struct TFrame *)malloc(sizeof(struct TFrame)); frame_init(me->pFrame,me);
+  /* TODO: search path detection for glade xml needed */
 }
 
 void app_destroy(struct TApp *me)

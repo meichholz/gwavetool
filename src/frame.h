@@ -17,9 +17,11 @@ struct TFrame {
   GtkAccelGroup  *pag;
   GtkWidget      *pwndTop;
   GtkWidget      *pMenu;
+  GtkWidget      *pmenuGlade;
   GtkWidget      *pVbox;
 
   gboolean        bDead;
+  GladeXML       *pGlade;
 
   GString        *pstrLastFile,*apstrLRU[FRAME_LRU_NUM];
   GtkWidget      *aMenuLRU[FRAME_LRU_NUM];

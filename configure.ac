@@ -1,11 +1,11 @@
 SUBDIRS=src
 PACKAGE=gwavetool
-AC_INIT(src/main.cc)
+AC_INIT(src/main.c)
 AC_PREREQ(2.57)
 AC_CONFIG_AUX_DIR(aux)
-AM_INIT_AUTOMAKE(gwavetool,0.0.8)
-AC_REVISION($Revision: 1.3 $)
-AC_PROG_CXX
+AM_INIT_AUTOMAKE(gwavetool,0.0.9)
+AC_REVISION($Revision: 1.4 $)
+AC_PROG_CC
 dnl <<y=yScale+cyWave*pWave->PeekSample(iChannel,li)/MAXSHORT;>> demands for this:
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_MAKE_SET
@@ -29,8 +29,13 @@ AC_CHECK_LIB(sndfile,sf_open,LIBS="-lsndfile $LIBS",AC_MSG_ERROR(need sndfile li
 
 AC_CHECK_HEADERS(pthread.h,[],AC_MSG_ERROR(need pthread.h))
 AC_CHECK_LIB(pthread,pthread_detach,LIBS="-lpthread $LIBS",AC_MSG_ERROR(need pthread library))
-dnl AM_PATH_GLIB_2_0(2.0.0, gaveglib=yes,AC_MSG_ERROR(need gthread-2.0),gthread)
 
+
+PKG_CHECK_MODULES(GLADE, libglade-2.0 libgnomeui-2.0 >= 1.110.0)
+AC_SUBST(GLADE_CFLAGS)
+AC_SUBST(GLADE_LIBS)
+
+dnl AM_PATH_GLIB_2_0(2.0.0, gaveglib=yes,AC_MSG_ERROR(need gthread-2.0),gthread)
 AM_PATH_GTK_2_0(2.0.0, havegtk=yes, AC_MSG_ERROR(need gtk-2.0),gthread)
 
 AC_CHECK_PROG(acme_have_podman,pod2man,yes)

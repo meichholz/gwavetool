@@ -9,20 +9,14 @@ for PAT in aclocal.m4 "*~" stamp-h.in Makefile Makefile.in configure "t.*" "tmp.
   find -name "$PAT" -exec rm "{}" \;
 done
 
-rm t config.* configure.scan src/config.h 2>/dev/null
+rm src/gwavetool.glade t config.* configure.scan src/config.h */.deps 2>/dev/null
 
 test "$1" = "-c" && exit
 
-GNOME_PATHS=""
-
-for i in /opt/gnome2/share/aclocal
-do
-  test -d $i && GNOME_PATHS="-I $i $GNOME_PATHS"
-done
-
+ln -s ui/gwavetool.glade src/
 
 autoscan
-aclocal $GNOME_PATHS
+aclocal -I acextra
 autoconf
 autoheader
 automake --add-missing --copy --include-deps --foreign

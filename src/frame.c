@@ -11,6 +11,8 @@
 
 #include <stdarg.h>
 
+#define USE_GLADE 1
+
 /* utility */
 
 GtkWindow*   frame_window(struct TFrame *me)
@@ -195,6 +197,39 @@ TResult frame_activate_LRU(struct TFrame *me, int iLRUfile)
 }
 
 /* ======================================================================
+ * Menu callbacks
+ * ====================================================================== */
+
+static void frame_cb_on_quit_activate(GtkMenuItem *pItem, struct TFrame *me)
+{
+  if (app_can_close(me->pApp) || 
+      frame_message_confirm(me,
+			    "Thus this great application *really* be shut down, my dear?"))
+    gtk_main_quit();
+}
+
+#ifdef GENERAL_CALLBACK
+static void frame_menu_cb(GtkMenuItem *pItem, gpointer user_data)
+{
+  fprintf(stderr,"activation of %s\n",gtk_widget_get_name(GTK_WIDGET(pItem)));
+}
+
+static void frame_glade_connect_cb(const gchar *handler_name,
+			  GObject *object,
+			  const gchar *signal_name,
+			  const gchar *signal_data,
+			  GObject *connect_object,
+			  gboolean after,
+			  gpointer user_data)
+{
+  if (!strcmp(signal_name,"activate"))
+    g_signal_connect(object,signal_name,frame_menu_cb,user_data);
+  fprintf(stderr,"set request signal %s on %s\n",
+	  signal_name, handler_name);
+}
+#endif
+
+/* ======================================================================
  * other menu stuff
  * ====================================================================== */
 
@@ -331,6 +366,17 @@ void frame_init(struct TFrame *me, struct TApp *papp)
 
   me->pstrLastFile=g_string_new("untitled.wav");
 
+
+  /* create menu from GLADE */
+  me->pGlade=glade_xml_new("gwavetool.glade", "menubar", NULL);
+  if (me->pGlade==NULL)
+    {
+      /* TODO: Fatal exception equivalent */
+      fprintf(stderr,"FATAL:frame_init: cannot construct GLADE\n");
+    }
+  me->pmenuGlade=glade_xml_get_widget(me->pGlade, "menubar");
+  glade_xml_signal_connect_data(me->pGlade,"frame_cb_on_quit_activate",G_CALLBACK(frame_cb_on_quit_activate),me);
+
   me->pag = gtk_accel_group_new();
   me->pmif = gtk_item_factory_new(GTK_TYPE_MENU_BAR,"<main>",me->pag);
   gint cItems = sizeof(menuTemplate)/sizeof(menuTemplate[0]);
@@ -345,14 +391,19 @@ void frame_init(struct TFrame *me, struct TApp *papp)
       me->apstrLRU[i]=g_string_new(szPath);
       // g_string_assign(apstrLRU[i],szPath);
     }
-  g_string_assign(me->apstrLRU[0],"../testfiles/1sax.wav");
+  g_string_assign(me->apstrLRU[0],"../testfiles/sax.wav");
   g_string_assign(me->apstrLRU[1],"1test.wav");
   g_string_assign(me->apstrLRU[2],"test2.wav");
   for (i=0; i<FRAME_LRU_NUM; i++)
     {
       char szPath[100];
+#ifdef USE_GLADE
+      sprintf(szPath,"lastfile%d",i+1);
+      me->aMenuLRU[i]=glade_xml_get_widget(me->pGlade,szPath);
+#else
       sprintf(szPath,"/File/Lastfile%d",i+1);
       me->aMenuLRU[i]=gtk_item_factory_get_item(me->pmif,szPath);
+#endif
     }
   for (i=0; i<FRAME_LRU_NUM; i++)
     {
@@ -364,6 +415,7 @@ void frame_init(struct TFrame *me, struct TApp *papp)
 
   gtk_container_add(GTK_CONTAINER(me->pwndTop),me->pVbox);
   gtk_box_pack_start(GTK_BOX(me->pVbox),me->pMenu,FALSE,FALSE,0);
+  gtk_box_pack_start(GTK_BOX(me->pVbox),me->pmenuGlade,FALSE,FALSE,0);
   gtk_widget_show(me->pMenu);
 
   me->pWaveView  = (struct TWaveView*) malloc(sizeof(struct TWaveView));
@@ -433,6 +485,15 @@ void frame_sync_state(struct TFrame *me)
    * Now rearrange the menu tree according to the new state
    */
 
+#ifdef USE_GLADE
+  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"save"),bHaveFile);
+  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"saveas"),bHaveFile);
+  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"zoomin"),bHaveFile && waveview_can_zoom_in(me->pWaveView));
+  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"zoomout"),bHaveFile && waveview_can_zoom_out(me->pWaveView));
+  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"play"),bHaveFile && waveview_is_busy(me->pWaveView));
+  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"record"),bHaveFile && waveview_is_busy(me->pWaveView));
+  gtk_widget_set_sensitive(glade_xml_get_widget(me->pGlade,"stop"),bHaveFile && !waveview_is_busy(me->pWaveView));
+#else
   gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/File/Save"),bHaveFile);
   gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/File/Save as..."),bHaveFile);
   gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Zoom in"),bHaveFile && waveview_can_zoom_in(me->pWaveView));
@@ -440,6 +501,7 @@ void frame_sync_state(struct TFrame *me)
   gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Play"),bHaveFile && waveview_is_busy(me->pWaveView));
   gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Record"),bHaveFile && waveview_is_busy(me->pWaveView));
   gtk_widget_set_sensitive(gtk_item_factory_get_item(me->pmif,"/View/Stop"),bHaveFile && !waveview_is_busy(me->pWaveView));
+#endif
 }
 
 /* ======================================================================
