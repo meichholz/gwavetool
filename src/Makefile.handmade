@@ -35,11 +35,11 @@ CPP = gcc
 
 NAME = gwavetool
 
-MODULES = waveview.o frame.o dlgabout.o main.o app.o wave.o statusbar.o
+MODULES = dlgnew.o waveview.o frame.o dlgabout.o main.o app.o wave.o statusbar.o
 
-HEADERS = gwavetool.h dlgabout.h main.h base.h app.h frame.h wave.h waveview.h statusbar.h
+HEADERS = gwavetool.h dlgnew.h dlgabout.h main.h base.h app.h frame.h wave.h waveview.h statusbar.h
 
-CCFILES = dlgabout.c main.c app.c frame.c wave.c waveview.c
+CCFILES = dlgnew.c dlgabout.c main.c app.c frame.c wave.c waveview.c
 
 BINARIES = $(NAME)
 

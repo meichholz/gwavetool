@@ -23,20 +23,15 @@ struct TFrame {
 
   GString        *pstrLastFile,*apstrLRU[FRAME_LRU_NUM];
   GtkWidget      *aMenuLRU[FRAME_LRU_NUM];
+
 };
 
-void         frame_on_menu_load(struct TFrame *me);
-void         frame_on_menu_save(struct TFrame *me);
-void         frame_on_menu_save_as(struct TFrame *me);
-void         frame_on_menu_new(struct TFrame *me);
 void         frame_init(struct TFrame *me, struct TApp *papp);
 void         frame_destroy(struct TFrame *me);
 
 /* event handlers */
 void     frame_repaint(struct TFrame *me);
-void     frame_on_delete(struct TFrame *me, GdkEventAny *pev);
-gboolean frame_on_menu(struct TFrame *me, guint idMenu);
-TResult          frame_activate_LRU(struct TFrame *me, int iLRUfile);
+TResult  frame_activate_LRU(struct TFrame *me, int iLRUfile);
 
 GtkWindow*   frame_window(struct TFrame *me);
 

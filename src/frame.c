@@ -6,13 +6,12 @@
 #include "frame.h"
 #include "wave.h"
 #include "waveview.h"
-#include "dlgabout.h"
 #include "statusbar.h"
 
+#include "dlgabout.h"
+#include "dlgnew.h"
+
 #include <stdarg.h>
-
-#define USE_GLADE 1
-
 #include <glade/glade-build.h>
 
 #define W(s) glade_xml_get_widget(me->pGlade,s)
@@ -135,7 +134,15 @@ void         frame_message_notimplemented(struct TFrame *me)
 
 void frame_on_new(GtkMenuItem *pItem, struct TFrame *me)
 {
-     frame_message_notimplemented(me);
+  struct TDlgNew *dlg=dlgnew_create(me);
+  if (dlg)
+    {
+      if (dlgnew_run(dlg)==GTK_RESPONSE_OK) /* true */
+	{
+	  fprintf(stderr,"DEBUG: TODO: do new buffer block\n");
+	}
+      dlgnew_destroy(dlg);
+    }
 }
 
 /* ======================================================================
@@ -337,7 +344,6 @@ void frame_init(struct TFrame *me, struct TApp *papp)
   WCONNECT(frame_on_load);
   WCONNECT(frame_on_save);
   WCONNECT(frame_on_save_as);
-  WCONNECT(frame_on_new);
   WCONNECT(frame_on_quit);
   WCONNECT(frame_on_lastfile);
   WCONNECT(frame_on_play);
