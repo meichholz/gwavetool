@@ -9,47 +9,48 @@
 // Constructor stuff
 // ======================================================================
 
-TStatusBar::TStatusBar(class TFrame *pParent,GtkWidget *pContainer) : TBase(pParent->pApp)
+void statusbar_init(struct TStatusBar *me, struct TFrame *pParent, GtkWidget *pContainer)
 {
-  pFrame=pParent;
+  me->pFrame=pParent;
   int i;
-  pBox=gtk_hbox_new(false,2);
-  gtk_box_pack_end(GTK_BOX(pContainer),pBox,false,false,2);
+  me->pBox=gtk_hbox_new(false,2);
+  gtk_box_pack_end(GTK_BOX(pContainer),me->pBox,false,false,2);
 
   for (i=0; i<STATUSBAR_NUM_ELEMENTS; i++)
-    apFrames[i]=gtk_frame_new(NULL);
-  gtk_box_pack_start(GTK_BOX(pBox),apFrames[0],false,false,0);
-  gtk_box_pack_start(GTK_BOX(pBox),apFrames[1],false,false,0);
-  // gtk_box_pack_start(GTK_BOX(pBox),apFrames[2],true,true,0);
+    me->apFrames[i]=gtk_frame_new(NULL);
+  gtk_box_pack_start(GTK_BOX(me->pBox),me->apFrames[0],false,false,0);
+  gtk_box_pack_start(GTK_BOX(me->pBox),me->apFrames[1],false,false,0);
+  // gtk_box_pack_start(GTK_BOX(me->pBox),me->apFrames[2],true,true,0);
   for (i=0; i<STATUSBAR_NUM_ELEMENTS; i++)
-    gtk_widget_show(apFrames[i]);
-  gtk_widget_show(pBox);
-  pLabelXY=gtk_label_new("00:00:00:000");
-  pProgress=gtk_progress_bar_new();
-  pStatusbar=gtk_statusbar_new();
-  gtk_container_add(GTK_CONTAINER(apFrames[0]),pLabelXY);
-  gtk_container_add(GTK_CONTAINER(apFrames[1]),pProgress);
-  // gtk_container_add(GTK_CONTAINER(apFrames[2]),pStatusbar);
-  gtk_box_pack_start(GTK_BOX(pBox),pStatusbar,true,true,0);
-  gtk_widget_show(pLabelXY);
-  gtk_widget_show(pProgress);
-  gtk_widget_show(pStatusbar);
+    gtk_widget_show(me->apFrames[i]);
+  gtk_widget_show(me->pBox);
+  me->pLabelXY=gtk_label_new("00:00:00:000");
+  me->pProgress=gtk_progress_bar_new();
+  me->pStatusBar=gtk_statusbar_new();
+  gtk_container_add(GTK_CONTAINER(me->apFrames[0]),me->pLabelXY);
+  gtk_container_add(GTK_CONTAINER(me->apFrames[1]),me->pProgress);
+  // gtk_container_add(GTK_CONTAINER(me->apFrames[2]),me->pStatusBar);
+  gtk_box_pack_start(GTK_BOX(me->pBox),me->pStatusBar,true,true,0);
+  gtk_widget_show(me->pLabelXY);
+  gtk_widget_show(me->pProgress);
+  gtk_widget_show(me->pStatusBar);
 
-  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pProgress),0.0);
-  gtk_statusbar_push(GTK_STATUSBAR(pStatusbar),1," ready.");
+  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(me->pProgress),0.0);
+  gtk_statusbar_push(GTK_STATUSBAR(me->pStatusBar),1," ready.");
 
 }
 
-TStatusBar::~TStatusBar()
+void statusbar_destroy(struct TStatusBar *me)
 {
+  /* TODO: pBox vernichten? Container auflösen? */
 }
 
-void TStatusBar::SetPercentage(double dPercent)
+void statusbar_set_percentage(struct TStatusBar *me, double dPercent)
 {
-  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pProgress),dPercent);
+  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(me->pProgress),dPercent);
 }
 
-void TStatusBar::SetPos(const gchar *szTimeCode)
+void statusbar_set_pos(struct TStatusBar *me, const gchar *szTimeCode)
 {
-  gtk_label_set_text(GTK_LABEL(pLabelXY),szTimeCode);
+  gtk_label_set_text(GTK_LABEL(me->pLabelXY),szTimeCode);
 }

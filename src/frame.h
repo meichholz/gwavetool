@@ -9,9 +9,9 @@
 
 struct TFrame {
 
-  struct TApp      *pApp;
-  class TWaveView  *pWaveView;
-  class TStatusBar *pStatusBar;
+  struct TApp       *pApp;
+  struct TWaveView  *pWaveView;
+  struct TStatusBar *pStatusBar;
 
   GtkItemFactory *pmif;
   GtkAccelGroup  *pag;

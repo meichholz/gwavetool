@@ -1,5 +1,11 @@
+2004-04-11  Marian Eichholz <eichholz@computer.org>
+	* removed obsolete options.* and toolbar.*
+	* statusbar.cc : changed to "C"
+
 2004-04-10  Marian Eichholz <eichholz@computer.org>
 	* main.cc / app.cc : changed to "C" style
+	* removed obsolete menu class stuff
+	* frame.cc / waveview.cc : changed to "C"
 
 2003-01-13  Marian Eichholz <eichholz@computer.org>
 	* the very beginning

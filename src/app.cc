@@ -11,7 +11,6 @@
 #include "app.h"
 #include "frame.h"
 #include "wave.h"
-#include "options.h"
 
 //
 // Constructor/Destructor
@@ -24,7 +23,6 @@ void app_init(struct TApp *me,int argc, char *argv[])
   gtk_init(&argc,&argv);
   me->pWave = new TWave(me);
   me->pFrame= (struct TFrame *)malloc(sizeof(TFrame)); frame_init(me->pFrame,me);
-  me->pOptions= new TOptions(me);
 }
 
 void app_destroy(struct TApp *me)
@@ -33,8 +31,6 @@ void app_destroy(struct TApp *me)
   frame_destroy(me->pFrame); free(me->pFrame);
   debug_printf(DEBUG_FRAMEWORK,"deleting pWave.");
   delete me->pWave;
-  debug_printf(DEBUG_FRAMEWORK,"deleting pOptions.");
-  delete me->pOptions;
 }
 
 // ----------------------------------------------------------------------

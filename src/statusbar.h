@@ -5,23 +5,14 @@
 
 #define STATUSBAR_NUM_ELEMENTS 3
 
-class TStatusBar : public TBase {
-
- protected:
+struct TStatusBar {
   class TFrame *pFrame;
-
   GtkWidget *pBox,*apFrames[STATUSBAR_NUM_ELEMENTS];
-  GtkWidget *pStatusbar,*pLabelXY,*pProgress;
-
- public:
-
-  /* constructors */
-           TStatusBar(class TFrame *pParent,GtkWidget *pContainer);
-  virtual ~TStatusBar();
-
-  void     SetPercentage(double dPercent);
-  void     SetPos(const gchar *szTimeCode);
-
+  GtkWidget *pStatusBar,*pLabelXY,*pProgress;
 };
 
+void statusbar_init(struct TStatusBar *me, struct TFrame *pParent, GtkWidget *pContainer);
+void statusbar_destroy(struct TStatusBar *me);
+void statusbar_set_percentage(struct TStatusBar *me, double dPercent);
+void statusbar_set_pos(struct TStatusBar *me, const gchar *szTimeCode);
 #endif

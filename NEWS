@@ -1,6 +1,6 @@
 New on 2004-04-10
 	* Begin rewrite in C: "Write in C, write in C ..."
-	* removed menus.* and resource compiling
+	* Cleanup of all unnecessary stuff
 
 New on 2003-11-26
 	* autoconf compliant (erm.. not really portable maybe)

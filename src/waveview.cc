@@ -221,7 +221,7 @@ gboolean waveview_on_mouse_move(struct TWaveView *me, GdkEventMotion *pEvent)
   double dTime=waveview_point_to_time(me,(long)pEvent->x);
   gchar szBuffer[WAVEVIEW_TIMECODE_LENGTH];
   get_time_code(szBuffer,sizeof(szBuffer),dTime);
-  me->pFrame->pStatusBar->SetPos(szBuffer);
+  statusbar_set_pos(me->pFrame->pStatusBar,szBuffer);
   return true; /* true=!propagate */
 }
 
@@ -365,7 +365,7 @@ void     waveview_close_recorder(struct TWaveView *me)
 void*    waveview_recorder_thread(struct TWaveView *me)
 {
   class TWave      *pWave=me->pApp->pWave;
-  class TStatusBar *pStatusBar=me->pFrame->pStatusBar;
+  struct TStatusBar *pStatusBar=me->pFrame->pStatusBar;
   if (!pWave || !pWave->IsValid())
     {
       me->stateRecorder=idle;
@@ -408,7 +408,7 @@ void*    waveview_recorder_thread(struct TWaveView *me)
 	{
 	  // should be done by the main loops idle task
 	  gdk_threads_enter();
-	  pStatusBar->SetPercentage((double)(li-liStart)/(double)(liEnd-liStart));
+	  statusbar_set_percentage(pStatusBar,(double)(li-liStart)/(double)(liEnd-liStart));
 	  gdk_threads_leave();
 	  pWave->GetFrame(psBuffer,li);
 #ifdef CONFIG_USE_ESD
@@ -427,7 +427,7 @@ void*    waveview_recorder_thread(struct TWaveView *me)
  
   me->stateRecorder=idle;
   gdk_threads_enter();
-  pStatusBar->SetPercentage(0.0);
+  statusbar_set_percentage(pStatusBar,0.0);
   frame_sync_state(me->pFrame);
   gdk_threads_leave();
   // THREAD EXIT

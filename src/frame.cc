@@ -29,7 +29,7 @@ void         frame_idle_task(struct TFrame *me)
   f+=fInc;
   if (f>=1.0) fInc=-0.01;
   if (f<=0.0) fInc=0.01;
-  me->pStatusBar->SetPercentage(f);
+  statusbar_set_percentage(me->pStatusBar,f);
 }
 
 /* ======================================================================
@@ -366,8 +366,10 @@ void frame_init(struct TFrame *me, struct TApp *papp)
   gtk_box_pack_start(GTK_BOX(me->pVbox),me->pMenu,FALSE,FALSE,0);
   gtk_widget_show(me->pMenu);
 
-  me->pWaveView = (struct TWaveView*)malloc(sizeof(struct TWaveView)); waveview_init(me->pWaveView,me,me->pVbox);
-  me->pStatusBar = new TStatusBar(me,me->pVbox);
+  me->pWaveView  = (struct TWaveView*) malloc(sizeof(struct TWaveView));
+  me->pStatusBar = (struct TStatusBar*)malloc(sizeof(struct TStatusBar));
+  waveview_init(me->pWaveView,me,me->pVbox);
+  statusbar_init(me->pStatusBar,me,me->pVbox);
 
   gtk_widget_show(me->pVbox);
 
@@ -392,7 +394,7 @@ void frame_destroy(struct TFrame *me)
   int i;
   me->bDead=true;
   waveview_destroy(me->pWaveView); free(me->pWaveView);
-  delete me->pStatusBar;
+  statusbar_destroy(me->pStatusBar); free(me->pStatusBar);
   g_object_unref(me->pmif);
   g_string_free(me->pstrLastFile,true);
   for (i=0; i<FRAME_LRU_NUM; i++)
