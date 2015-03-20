@@ -1,5 +1,11 @@
-Q&D install instructions
-========================
+# GWaveTool
+
+This was once an attempt to code a wave form editor.
+With the advent of audacity, and when I met my future wife,
+this was prone to die really early.
+
+
+## Q&D install instructions
 
 The build harness is far from begin clean.
 
@@ -18,5 +24,9 @@ You can also try to "configure" using these steps (may be broken):
 
 Since there is no project specific library / pkgconfig stuff, You may safely
 install and remove the binary later.
+
+## License
+
+See MIT-[LICENSE](LICENSE).
 
 	
